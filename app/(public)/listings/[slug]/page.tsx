@@ -7,13 +7,14 @@ import { Listing, Tag } from '@/types';
 import { Metadata } from 'next';
 
 interface ListingDetailPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export async function generateMetadata({ params }: ListingDetailPageProps): Promise<Metadata> {
-  const { slug } = await Promise.resolve(params);
+  const { slug } = await params;
   
   try {
     const response = await getListingBySlug(slug);
@@ -45,8 +46,8 @@ export async function generateMetadata({ params }: ListingDetailPageProps): Prom
   }
 }
 
-export default async function ListingDetailPage({ params }: ListingDetailPageProps) {
-  const { slug } = await Promise.resolve(params);
+export default async function ListingDetailPage({ params, searchParams }: ListingDetailPageProps) {
+  const [{ slug }, resolvedSearchParams] = await Promise.all([params, searchParams]);
   
   try {
     const response = await getListingBySlug(slug);

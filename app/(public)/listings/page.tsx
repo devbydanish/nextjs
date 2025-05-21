@@ -13,19 +13,20 @@ export const metadata: Metadata = {
 };
 
 interface ListingsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     city?: string;
     category?: string;
     page?: string;
     featured?: string;
-  };
+  }>;
 }
 
 export default async function ListingsPage({ searchParams }: ListingsPageProps) {
-  const citySlug = searchParams.city;
-  const categorySlug = searchParams.category;
-  const page = Number(searchParams.page) || 1;
-  const featured = searchParams.featured === 'true';
+  const resolvedParams = await searchParams;
+  const citySlug = resolvedParams.city;
+  const categorySlug = resolvedParams.category;
+  const page = Number(resolvedParams.page) || 1;
+  const featured = resolvedParams.featured === 'true';
   
   // Fetch cities and categories for filters
   const [citiesResponse, categoriesResponse, listingsResponse] = await Promise.all([
