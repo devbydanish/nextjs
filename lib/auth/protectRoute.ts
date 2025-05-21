@@ -1,15 +1,15 @@
 import { redirect } from 'next/navigation';
-import { getMe } from '@/lib/api/auth';
+import { isAuthenticated } from '@/lib/api/auth';
 
-export async function protectRoute() {
-  try {
-    await getMe();
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      console.error('Auth error:', err.message);
-    }
+export function protectRoute() {
+  // Check if user is authenticated client-side
+  const isAuth = isAuthenticated();
+  
+  if (!isAuth) {
     redirect('/auth/login');
   }
+  
+  return true;
 }
 
 export function withAuth(Component: any) {

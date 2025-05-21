@@ -18,6 +18,9 @@ export default function ListingCard({ listing }: ListingCardProps) {
   const imageUrl = firstImage 
     ? process.env.NEXT_PUBLIC_API_URL + firstImage.formats?.medium?.url || process.env.NEXT_PUBLIC_API_URL + firstImage.url 
     : '/placeholder-image.jpg';
+    
+  const categorySlug = category?.slug;
+  const citySlug = city?.slug;
   
   return (
     <div className="rounded-lg overflow-hidden shadow-md bg-white hover:shadow-lg transition-shadow">

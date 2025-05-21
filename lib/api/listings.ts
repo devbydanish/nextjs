@@ -1,21 +1,49 @@
-import { apiClient } from './client';
+import apiClient from './client';
 import { ApiResponse, FilterParams, Listing, PaginationParams } from '@/types';
 
-export async function getListings(filters: FilterParams = {}): Promise<ApiResponse<Listing[]>> {
-  const { page = 1, pageSize = 12, city, category, featured } = filters;
+export async function getListings(
+  params: PaginationParams & FilterParams = { page: 1, pageSize: 10 }
+): Promise<ApiResponse<Listing[]>> {
+  const { page, pageSize, category, city, featured, tags } = params;
   
-  const params = new URLSearchParams({
-    'pagination[page]': page.toString(),
-    'pagination[pageSize]': pageSize.toString(),
-    'populate': 'images,category,city,tags',
-  });
+  // Build filters
+  let filters = {};
   
-  if (city) params.append('filters[city][slug][$eq]', city);
-  if (category) params.append('filters[category][slug][$eq]', category);
-  if (featured) params.append('filters[featured][$eq]', 'true');
+  if (category) {
+    filters = { ...filters, 'category': {
+      slug: { $eq: category }
+    }};
+  }
   
-  const response = await apiClient.get(`/listings?${params.toString()}`);
-  return response.data;
+  if (city) {
+    filters = { ...filters, 'city': {
+      slug: { $eq: city }
+    }};
+  }
+  
+  if (featured !== undefined) {
+    filters = { ...filters, featured: { $eq: featured } };
+  }
+  
+  if (tags && tags.length > 0) {
+    filters = { ...filters, 'tags': {
+      slug: { $in: tags }
+    }};
+  }
+  
+  const queryParams = {
+    populate: ['images', 'category', 'city', 'tags'],
+    pagination: {
+      page,
+      pageSize
+    },
+    filters
+  };
+
+  console.log(queryParams);
+  
+  const { data } = await apiClient.get('/api/listings', { params: { ...queryParams } });
+  return data;
 }
 
 export async function getFeaturedListings(limit = 6): Promise<ApiResponse<Listing[]>> {
@@ -23,8 +51,13 @@ export async function getFeaturedListings(limit = 6): Promise<ApiResponse<Listin
 }
 
 export async function getListingBySlug(slug: string): Promise<ApiResponse<Listing>> {
-  const response = await apiClient.get(`/listings?filters[slug][$eq]=${slug}&populate=images,category,city,tags`);
-  return response.data;
+  const { data } = await apiClient.get(`/api/listings`, {
+    params: {
+      filters: { slug: { $eq: slug } },
+      populate: ['images', 'category', 'city', 'tags']
+    }
+  });
+  return data;
 }
 
 export async function getUserListings(userId: number): Promise<ApiResponse<Listing[]>> {
@@ -44,33 +77,60 @@ export async function uploadFiles(files: File[]): Promise<any[]> {
     formData.append('files', file);
   });
   
-  const response = await apiClient.post('/upload', formData, {
+  const config = {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
-  });
-  return response.data;
+  };
+  
+  const { data } = await apiClient.post('/api/upload', formData, config);
+  return data;
 }
 
-export async function createListing(data: FormData): Promise<ApiResponse<Listing>> {
-  const response = await apiClient.post('/listings', data, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-  return response.data;
+export async function createListing(listingData: FormData): Promise<ApiResponse<Listing>> {
+  // Extract the payload and files
+  const payload = JSON.parse(listingData.get('data') as string);
+  const files = listingData.getAll('files.images') as File[];
+  
+  // First upload the files
+  let fileIds = [];
+  if (files && files.length > 0) {
+    const uploadedFiles = await uploadFiles(files);
+    fileIds = uploadedFiles.map(file => file.id);
+  }
+  
+  // Create the listing with the file IDs
+  const listingPayload = {
+    ...payload,
+    images: fileIds
+  };
+  
+  const { data } = await apiClient.post('/api/listings', { data: listingPayload });
+  return data;
 }
 
-export async function updateListing(id: number, data: FormData): Promise<ApiResponse<Listing>> {
-  const response = await apiClient.put(`/listings/${id}`, data, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-  return response.data;
+export async function updateListing(id: number, listingData: FormData): Promise<ApiResponse<Listing>> {
+  // Extract the payload and files
+  const payload = JSON.parse(listingData.get('data') as string);
+  const files = listingData.getAll('files.images') as File[];
+  
+  // First upload the files
+  let fileIds = [];
+  if (files && files.length > 0) {
+    const uploadedFiles = await uploadFiles(files);
+    fileIds = uploadedFiles.map(file => file.id);
+  }
+  
+  // Update the listing with the file IDs
+  const listingPayload = {
+    ...payload,
+    images: fileIds
+  };
+  
+  const { data } = await apiClient.put(`/api/listings/${id}`, { data: listingPayload });
+  return data;
 }
 
 export async function deleteListing(id: number): Promise<void> {
-  const response = await apiClient.delete(`/listings/${id}`);
-  return response.data;
+  await apiClient.delete(`/api/listings/${id}`);
 } 

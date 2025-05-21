@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Category, City, Listing, ListingFormData, Tag } from '@/types';
 import { getCategories } from '@/lib/api/categories';
 import { getCities } from '@/lib/api/cities';
-import { createListing, updateListing, uploadFiles, getListingById } from '@/lib/api/listings';
+import { createListing, updateListing, uploadFiles } from '@/lib/api/listings';
 import { useAuthStore } from '@/lib/store/authStore';
 
 interface ListingFormProps {
@@ -14,36 +14,23 @@ interface ListingFormProps {
   isEditing?: boolean;
 }
 
-interface FormData {
-  title: string;
-  description: string;
-  phone: string;
-  email: string;
-  address: string;
-  category: number;
-  city: number;
-  images: File[];
-  status?: string;
-  price?: string;
-  featured?: boolean;
-}
-
 export default function ListingForm({ initialData, isEditing = false }: ListingFormProps) {
   const router = useRouter();
   const { user } = useAuthStore();
   
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<ListingFormData>({
     title: initialData?.title || '',
     description: initialData?.description || '',
     phone: initialData?.phone || '',
     email: initialData?.email || user?.email || '',
     address: initialData?.address || '',
-    category: initialData?.category?.id || 0,
-    city: initialData?.city?.id || 0,
-    images: [],
     price: initialData?.price?.toString() || '',
     featured: initialData?.featured || false,
-    status: initialData?.status || 'pending'
+    status: initialData?.status || 'pending',
+    category: initialData?.category?.id || 0,
+    city: initialData?.city?.id || 0,
+    tags: initialData?.tags?.map(tag => tag.id) || [],
+    images: []
   });
   
   const [categories, setCategories] = useState<Category[]>([]);
@@ -120,23 +107,52 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
     setExistingImages(prev => prev.filter(img => img.id !== id));
   };
   
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     setError(null);
     
     try {
-      const formDataToSend = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          formDataToSend.append(key, value.toString());
-        }
-      });
+      // First upload any new images
+      let uploadedImageIds: number[] = [];
       
-      if (initialData) {
-        await updateListing(initialData.id, formDataToSend);
-        setShowApprovalInfo(formDataToSend.status === 'pending');
+      if (formData.images.length > 0) {
+        const uploadedFiles = await uploadFiles(formData.images);
+        uploadedImageIds = uploadedFiles.map(file => file.id);
+      }
+      
+      // Get existing image IDs
+      const existingImageIds = existingImages.map(img => img.id);
+      
+      // Combine new and existing image IDs
+      const allImageIds = [...existingImageIds, ...uploadedImageIds];
+      
+      // Create data object for the API
+      const listingPayload = {
+        title: formData.title,
+        description: formData.description,
+        phone: formData.phone,
+        email: formData.email,
+        address: formData.address,
+        price: formData.price ? parseFloat(formData.price) : undefined,
+        featured: formData.featured,
+        status: isEditing && initialData?.status === 'approved' ? 'approved' : 'pending',
+        category: formData.category,
+        city: formData.city,
+        tags: formData.tags,
+        images: allImageIds,
+        user: user?.id
+      };
+      
+      // Create form data with the payload
+      const data = new FormData();
+      data.append('data', JSON.stringify(listingPayload));
+      
+      if (isEditing && initialData) {
+        await updateListing(initialData.id, data);
+        setShowApprovalInfo(listingPayload.status === 'pending');
       } else {
-        await createListing(formDataToSend);
+        await createListing(data);
         setShowApprovalInfo(true);
       }
       
@@ -144,10 +160,11 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
         // Redirect to dashboard
         router.push('/dashboard');
       }
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to save listing. Please try again.';
-      setError(errorMessage);
+    } catch (err: any) {
+      setError(err.message || 'Failed to save listing. Please try again.');
       console.error('Error saving listing:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
   
