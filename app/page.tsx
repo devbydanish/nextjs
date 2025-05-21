@@ -42,7 +42,7 @@ export default async function HomePage() {
       <div className="bg-gradient-to-r from-purple-600 to-indigo-700 rounded-lg shadow-xl overflow-hidden mb-12">
         <div className="px-8 py-16 md:py-20 md:px-12 lg:w-3/5">
           <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-4">
-            Find What You're Looking For
+            Find What You&apos;re Looking For
           </h1>
           <p className="text-lg text-purple-100 mb-8">
             Browse thousands of listings or create your own to reach the right audience.

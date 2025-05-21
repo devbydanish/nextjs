@@ -1,6 +1,5 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { getListings } from '@/lib/api/listings';
 import { getCities } from '@/lib/api/cities';
 import { getCategories } from '@/lib/api/categories';

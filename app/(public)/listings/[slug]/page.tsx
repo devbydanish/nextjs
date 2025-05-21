@@ -1,260 +1,157 @@
 import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import Image from 'next/image';
 import { getListingBySlug } from '@/lib/api/listings';
-import { Listing, Tag } from '@/types';
 import { Metadata } from 'next';
 
-interface ListingDetailPageProps {
+interface ListingPageProps {
   params: {
     slug: string;
   };
 }
 
-export async function generateMetadata({ params }: ListingDetailPageProps): Promise<Metadata> {
-  const { slug } = await Promise.resolve(params);
-  
+export async function generateMetadata({ params }: ListingPageProps): Promise<Metadata> {
   try {
-    const response = await getListingBySlug(slug);
-    const listing = Array.isArray(response.data) ? response.data[0] : response.data;
-    
-    if (!listing) {
-      return {
-        title: 'Listing Not Found',
-        description: 'The requested listing could not be found.'
-      };
-    }
+    const { data: listing } = await getListingBySlug(params.slug);
     
     return {
       title: `${listing.title} | Lust66`,
-      description: listing.description.substring(0, 160),
-      openGraph: {
-        title: listing.title,
-        description: listing.description.substring(0, 160),
-        images: listing.images && listing.images.length > 0 
-          ? [`${process.env.NEXT_PUBLIC_API_URL}${listing.images[0].url}`] 
-          : [],
-      },
+      description: listing.description,
     };
-  } catch (error) {
+  } catch {
     return {
-      title: 'Listing Not Found',
-      description: 'The requested listing could not be found.'
+      title: 'Listing Not Found | Lust66',
+      description: 'The requested listing could not be found.',
     };
   }
 }
 
-export default async function ListingDetailPage({ params }: ListingDetailPageProps) {
-  const { slug } = await Promise.resolve(params);
-  
+export default async function ListingPage({ params }: ListingPageProps) {
   try {
-    const response = await getListingBySlug(slug);
-    const listing = Array.isArray(response.data) ? response.data[0] : response.data;
+    const { data: listing } = await getListingBySlug(params.slug);
     
-    if (!listing) {
-      notFound();
-    }
-    
-    const { 
-      title, 
-      description, 
-      phone,
-      email,
-      price,
-      address,
-      images, 
-      category, 
-      city,
-      tags,
-      featured,
-      createdAt
-    } = listing;
-    
-    const categoryName = category.name;
-    const cityName = city.name;
-    const citySlug = city.slug;
-    const categorySlug = category.slug;
-    
-    // Format description text with paragraphs
-    const formattedDescription = description.split('\n').map((paragraph: string, i: number) => (
-      <p key={i} className="mb-4">{paragraph}</p>
-    ));
-
-    // Format date
-    const formattedDate = new Date(createdAt).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-    
-    // Build query strings for filter links
-    const buildCityQuery = () => {
-      const params = new URLSearchParams();
-      params.append('city', citySlug);
-      return `?${params.toString()}`;
-    };
-    
-    const buildCategoryQuery = () => {
-      const params = new URLSearchParams();
-      params.append('category', categorySlug);
-      return `?${params.toString()}`;
-    };
+    // Get first image or use placeholder
+    const firstImage = listing.images && listing.images.length > 0 
+      ? listing.images[0] 
+      : null;
+      
+    const imageUrl = firstImage 
+      ? process.env.NEXT_PUBLIC_API_URL + firstImage.formats?.medium?.url || process.env.NEXT_PUBLIC_API_URL + firstImage.url 
+      : '/placeholder-image.jpg';
     
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Breadcrumbs */}
-        <nav className="mb-6 text-sm">
-          <ol className="flex space-x-2">
-            <li>
-              <Link href="/" className="text-purple-600 hover:text-purple-500">
-                Home
-              </Link>
-            </li>
-            <li className="text-gray-500">/</li>
-            <li>
-              <Link href="/listings" className="text-purple-600 hover:text-purple-500">
-                Listings
-              </Link>
-            </li>
-            <li className="text-gray-500">/</li>
-            <li className="text-gray-500 truncate max-w-[200px]">{title}</li>
-          </ol>
-        </nav>
+        <div className="mb-8">
+          <Link 
+            href="/listings" 
+            className="text-purple-600 hover:text-purple-500 font-medium"
+          >
+            ← Back to Listings
+          </Link>
+        </div>
         
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {/* Image Gallery */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
-            <div className="relative h-80 bg-gray-100 rounded-lg overflow-hidden">
-              {images && images.length > 0 ? (
-                <Image
-                  src={`${process.env.NEXT_PUBLIC_API_URL}${images[0].url}`}
-                  alt={title}
-                  className="object-cover"
-                  fill
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <span className="text-gray-400">No image available</span>
-                </div>
-              )}
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {images && images.slice(1).map((image: any, index: number) => (
-                <div key={index} className="relative h-32 bg-gray-100 rounded-lg overflow-hidden">
-                  <Image
-                    src={`${process.env.NEXT_PUBLIC_API_URL}${image.url}`}
-                    alt={`${title} - Image ${index + 2}`}
-                    className="object-cover"
-                    fill
-                  />
-                </div>
-              ))}
-            </div>
+          <div className="relative h-64 md:h-96 w-full">
+            <Image
+              src={imageUrl}
+              alt={listing.title}
+              className="object-cover"
+              fill
+              priority
+            />
+            {listing.featured && (
+              <span className="absolute top-4 right-4 bg-amber-500 text-white px-3 py-1 rounded-md text-sm font-medium">
+                Featured
+              </span>
+            )}
           </div>
           
-          {/* Listing Content */}
-          <div className="p-6">
-            <div className="flex flex-wrap items-center gap-2 mb-4">
-              <Link href={`/listings${buildCategoryQuery()}`} className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded hover:bg-purple-200">
-                {categoryName}
-              </Link>
-              <Link href={`/listings${buildCityQuery()}`} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded hover:bg-gray-200">
-                {cityName}
-              </Link>
-              {featured && (
-                <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">
-                  Featured
-                </span>
-              )}
-              {tags && tags.map((tag: Tag) => (
-                <span 
-                  key={tag.id} 
-                  className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
-                >
-                  {tag.name}
-                </span>
-              ))}
-              <span className="text-gray-500 text-xs ml-auto">
-                Posted on {formattedDate}
-              </span>
-            </div>
+          <div className="p-6 md:p-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">{listing.title}</h1>
             
-            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{title}</h1>
-              {price && (
-                <div className="text-xl font-bold text-purple-600 whitespace-nowrap">
-                  ${price.toFixed(2)}
-                </div>
+            <div className="flex items-center text-sm text-gray-500 mb-6">
+              <span>{listing.city.name}</span>
+              <span className="mx-2">•</span>
+              <span>{listing.category.name}</span>
+              {listing.tags && listing.tags.length > 0 && (
+                <>
+                  <span className="mx-2">•</span>
+                  <div className="flex flex-wrap gap-2">
+                    {listing.tags.map(tag => (
+                      <span 
+                        key={tag.id}
+                        className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs"
+                      >
+                        {tag.name}
+                      </span>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
             
             <div className="prose max-w-none mb-8">
-              {formattedDescription}
+              <p className="text-gray-700 whitespace-pre-line">{listing.description}</p>
             </div>
             
-            {/* Contact Information */}
-            <div className="bg-gray-50 p-6 rounded-md mb-6">
-              <h2 className="text-lg font-medium mb-4">Contact Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {phone && (
+            <div className="border-t border-gray-200 pt-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h2>
+              
+              <div className="space-y-4">
+                {listing.phone && (
                   <div className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                    <svg className="h-5 w-5 text-gray-400 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    <span className="text-gray-700">{phone}</span>
+                    <span className="text-gray-700">{listing.phone}</span>
                   </div>
                 )}
-                {email && (
+                
+                {listing.email && (
                   <div className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                      <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                    <svg className="h-5 w-5 text-gray-400 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                    <span className="text-gray-700">{email}</span>
+                    <a 
+                      href={`mailto:${listing.email}`}
+                      className="text-purple-600 hover:text-purple-500"
+                    >
+                      {listing.email}
+                    </a>
                   </div>
                 )}
-                {address && (
-                  <div className="flex items-center col-span-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                
+                {listing.address && (
+                  <div className="flex items-start">
+                    <svg className="h-5 w-5 text-gray-400 mr-3 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span className="text-gray-700">{address}</span>
+                    <span className="text-gray-700">{listing.address}</span>
                   </div>
                 )}
               </div>
-            </div>
-            
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-4">
-              <Link 
-                href="/listings"
-                className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md"
-              >
-                Back to Listings
-              </Link>
-              {phone && (
-                <button 
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md"
-                  onClick={() => window.location.href = `tel:${phone}`}
-                >
-                  Call Now
-                </button>
-              )}
-              {email && (
-                <button 
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md"
-                  onClick={() => window.location.href = `mailto:${email}`}
-                >
-                  Email
-                </button>
-              )}
             </div>
           </div>
         </div>
       </div>
     );
-  } catch (error) {
-    notFound();
+  } catch {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Listing Not Found</h1>
+          <p className="text-gray-600 mb-8">
+            The listing you&apos;re looking for doesn&apos;t exist or has been removed.
+          </p>
+          <Link 
+            href="/listings" 
+            className="inline-block bg-purple-600 text-white px-6 py-3 rounded-md font-medium hover:bg-purple-700"
+          >
+            Browse All Listings
+          </Link>
+        </div>
+      </div>
+    );
   }
 } 
