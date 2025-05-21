@@ -1,115 +1,93 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User } from '@/types';
-import * as authApi from '@/lib/api/auth';
+import { login as apiLogin, register as apiRegister, getMe } from '@/lib/api/auth';
+import { User, AuthResponse } from '@/types';
 
-type AuthState = {
+interface AuthState {
   user: User | null;
+  token: string | null;
   isLoading: boolean;
   error: string | null;
-  isAuthenticated: boolean;
-  login: (identifier: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, username: string) => Promise<void>;
   logout: () => void;
-  loadUser: () => Promise<User | null>;
-};
+  checkAuth: () => Promise<void>;
+}
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
+      token: null,
       isLoading: false,
       error: null,
-      isAuthenticated: false,
       
-      login: async (identifier: string, password: string) => {
+      login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
-        
         try {
-          const response = await authApi.login({ identifier, password });
-          authApi.storeToken(response.jwt);
+          const response = await apiLogin(email, password);
           set({ 
             user: response.user,
-            isAuthenticated: true,
+            token: response.jwt,
             isLoading: false,
             error: null
           });
-        } catch (error: any) {
-          const errorMessage = error.response?.data?.error?.message || 'Login failed. Please try again.';
+        } catch (err: unknown) {
+          const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.';
           set({ 
-            isLoading: false, 
-            error: errorMessage,
-            isAuthenticated: false
+            isLoading: false,
+            error: errorMessage
           });
           throw new Error(errorMessage);
         }
       },
       
-      register: async (username: string, email: string, password: string) => {
+      register: async (email: string, password: string, username: string) => {
         set({ isLoading: true, error: null });
-        
         try {
-          const response = await authApi.register({ username, email, password });
-          authApi.storeToken(response.jwt);
-          set({
+          const response = await apiRegister(email, password, username);
+          set({ 
             user: response.user,
-            isAuthenticated: true,
+            token: response.jwt,
             isLoading: false,
             error: null
           });
-        } catch (error: any) {
-          const errorMessage = error.response?.data?.error?.message || 'Registration failed. Please try again.';
-          set({
+        } catch (err: unknown) {
+          const errorMessage = err instanceof Error ? err.message : 'Registration failed. Please try again.';
+          set({ 
             isLoading: false,
-            error: errorMessage,
-            isAuthenticated: false
+            error: errorMessage
           });
           throw new Error(errorMessage);
         }
       },
       
       logout: () => {
-        authApi.removeToken();
-        set({
+        set({ 
           user: null,
-          isAuthenticated: false,
+          token: null,
           error: null
         });
       },
       
-      loadUser: async () => {
-        if (!authApi.isAuthenticated()) {
-          set({ isAuthenticated: false, user: null });
-          return null;
-        }
-        
-        set({ isLoading: true });
-        
+      checkAuth: async () => {
         try {
-          const user = await authApi.getCurrentUser();
-          set({
-            user,
-            isAuthenticated: !!user,
-            isLoading: false
-          });
-          return user;
-        } catch (error) {
-          authApi.removeToken();
-          set({
+          const user = await getMe();
+          set({ user });
+        } catch {
+          set({ 
             user: null,
-            isAuthenticated: false,
-            isLoading: false,
+            token: null,
             error: 'Session expired. Please login again.'
           });
-          return null;
         }
       }
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated
+      partialize: (state) => ({ 
+        token: state.token,
+        user: state.user
       })
     }
   )

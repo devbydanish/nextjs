@@ -1,29 +1,45 @@
-import apiClient from './client';
+import { apiClient } from './client';
 import { AuthResponse, LoginFormData, RegisterFormData, User } from '@/types';
 
-export async function login(data: LoginFormData): Promise<AuthResponse> {
-  const response = await apiClient.post('/api/auth/local', {
-    identifier: data.identifier,
-    password: data.password
-  });
-  return response.data;
-}
-
-export async function register(data: RegisterFormData): Promise<AuthResponse> {
-  const response = await apiClient.post('/api/auth/local/register', {
-    username: data.username,
-    email: data.email,
-    password: data.password
-  });
-  return response.data;
-}
-
-export async function getCurrentUser(): Promise<User | null> {
+export async function login(email: string, password: string): Promise<AuthResponse> {
   try {
-    const response = await apiClient.get('/api/users/me');
+    const response = await apiClient.post('/auth/local', {
+      identifier: email,
+      password,
+    });
     return response.data;
-  } catch (error) {
-    return null;
+  } catch {
+    throw new Error('Invalid email or password');
+  }
+}
+
+export async function register(email: string, password: string, username: string): Promise<AuthResponse> {
+  try {
+    const response = await apiClient.post('/auth/local/register', {
+      username,
+      email,
+      password,
+    });
+    return response.data;
+  } catch {
+    throw new Error('Registration failed. Please try again.');
+  }
+}
+
+export async function logout() {
+  try {
+    await apiClient.post('/auth/logout');
+  } catch {
+    // Ignore logout errors
+  }
+}
+
+export async function getMe(): Promise<User | null> {
+  try {
+    const response = await apiClient.get('/users/me');
+    return response.data;
+  } catch {
+    throw new Error('Failed to get user data');
   }
 }
 
