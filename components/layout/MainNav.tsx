@@ -1,39 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/authStore';
-import { getCategories } from '@/lib/api/categories';
-import { getCities } from '@/lib/api/cities';
-import { Category, City } from '@/types';
 
 export default function MainNav() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuthStore();
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [cities, setCities] = useState<City[]>([]);
-  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
-  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
-  
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [categoriesResponse, citiesResponse] = await Promise.all([
-          getCategories(),
-          getCities()
-        ]);
-        
-        setCategories(categoriesResponse.data);
-        setCities(citiesResponse.data);
-      } catch (error) {
-        console.error('Error fetching dropdown data:', error);
-      }
-    };
-    
-    fetchData();
-  }, []);
   
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -85,88 +60,6 @@ export default function MainNav() {
                   {item.name}
                 </Link>
               ))}
-              
-              {/* Categories Dropdown */}
-              <div className="relative">
-                <button
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 ${
-                    pathname.includes('/category')
-                      ? 'border-purple-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  } text-sm font-medium focus:outline-none`}
-                  onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
-                  onBlur={(e) => {
-                    // Only close if focus doesn't move to another element within the dropdown
-                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                      setTimeout(() => setCategoryDropdownOpen(false), 100);
-                    }
-                  }}
-                >
-                  Categories
-                  <svg className="ml-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </button>
-                
-                {categoryDropdownOpen && (
-                  <div className="absolute z-10 mt-1 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                    <div className="py-1 max-h-60 overflow-auto" role="menu" aria-orientation="vertical">
-                      {categories.map((category) => (
-                        <Link
-                          key={category.id}
-                          href={`/listings?category=${category.slug}`}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          role="menuitem"
-                          onClick={() => setCategoryDropdownOpen(false)}
-                        >
-                          {category.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Cities Dropdown */}
-              <div className="relative">
-                <button
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 ${
-                    pathname.includes('/city')
-                      ? 'border-purple-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                  } text-sm font-medium focus:outline-none`}
-                  onClick={() => setCityDropdownOpen(!cityDropdownOpen)}
-                  onBlur={(e) => {
-                    // Only close if focus doesn't move to another element within the dropdown
-                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                      setTimeout(() => setCityDropdownOpen(false), 100);
-                    }
-                  }}
-                >
-                  Cities
-                  <svg className="ml-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </button>
-                
-                {cityDropdownOpen && (
-                  <div className="absolute z-10 mt-1 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                    <div className="py-1 max-h-60 overflow-auto" role="menu" aria-orientation="vertical">
-                      {cities.map((city) => (
-                        <Link
-                          key={city.id}
-                          href={`/listings?city=${city.slug}`}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          role="menuitem"
-                          onClick={() => setCityDropdownOpen(false)}
-                        >
-                          {city.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
           
@@ -245,68 +138,6 @@ export default function MainNav() {
                 {item.name}
               </Link>
             ))}
-            
-            {/* Mobile Categories */}
-            <div>
-              <button
-                className="flex justify-between w-full pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 text-base font-medium"
-                onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
-              >
-                <span>Categories</span>
-                <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </button>
-              
-              {categoryDropdownOpen && (
-                <div className="pl-6 pr-4 py-2 space-y-1">
-                  {categories.map((category) => (
-                    <Link
-                      key={category.id}
-                      href={`/listings?category=${category.slug}`}
-                      className="block py-2 text-sm text-gray-500 hover:text-gray-700"
-                      onClick={() => {
-                        setCategoryDropdownOpen(false);
-                        setMobileMenuOpen(false);
-                      }}
-                    >
-                      {category.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            {/* Mobile Cities */}
-            <div>
-              <button
-                className="flex justify-between w-full pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 text-base font-medium"
-                onClick={() => setCityDropdownOpen(!cityDropdownOpen)}
-              >
-                <span>Cities</span>
-                <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </button>
-              
-              {cityDropdownOpen && (
-                <div className="pl-6 pr-4 py-2 space-y-1">
-                  {cities.map((city) => (
-                    <Link
-                      key={city.id}
-                      href={`/listings?city=${city.slug}`}
-                      className="block py-2 text-sm text-gray-500 hover:text-gray-700"
-                      onClick={() => {
-                        setCityDropdownOpen(false);
-                        setMobileMenuOpen(false);
-                      }}
-                    >
-                      {city.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
           <div className="pt-4 pb-3 border-t border-gray-200">
             {isAuthenticated && (
