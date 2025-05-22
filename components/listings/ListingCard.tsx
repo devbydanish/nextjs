@@ -5,9 +5,10 @@ import { Listing } from '@/types';
 
 interface ListingCardProps {
   listing: Listing;
+  compact?: boolean;
 }
 
-export default function ListingCard({ listing }: ListingCardProps) {
+export default function ListingCard({ listing, compact = false }: ListingCardProps) {
   const { title, slug, phone, featured, images, category, city } = listing;
   
   // Get first image or use placeholder
@@ -22,10 +23,40 @@ export default function ListingCard({ listing }: ListingCardProps) {
   const categorySlug = category?.slug;
   const citySlug = city?.slug;
   
+  if (compact) {
+    return (
+      <div className="overflow-hidden bg-white hover:shadow-md transition-shadow rounded border border-gray-100">
+        <Link href={`/listings/${slug}`} className="block h-full">
+          <div className="relative aspect-[4/3] w-full">
+            <Image
+              src={imageUrl}
+              alt={title}
+              className="object-cover"
+              fill
+            />
+            {featured && (
+              <span className="absolute top-1 right-1 bg-amber-500 text-white text-xs px-1 py-0.5 rounded">
+                ★
+              </span>
+            )}
+          </div>
+          <div className="p-2">
+            <h3 className="text-sm font-medium truncate text-gray-800">{title}</h3>
+            {city && (
+              <div className="flex items-center text-xs text-gray-500 mt-0.5 truncate">
+                <span>{city.name}</span>
+              </div>
+            )}
+          </div>
+        </Link>
+      </div>
+    );
+  }
+  
   return (
-    <div className="rounded-lg overflow-hidden shadow-md bg-white hover:shadow-lg transition-shadow">
-      <Link href={`/listings/${slug}`}>
-        <div className="relative h-48 w-full">
+    <div className="rounded-lg overflow-hidden shadow-md bg-white hover:shadow-lg transition-shadow border border-gray-100">
+      <Link href={`/listings/${slug}`} className="block h-full">
+        <div className="relative aspect-[4/3] w-full">
           <Image
             src={imageUrl}
             alt={title}
@@ -39,7 +70,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
           )}
         </div>
         <div className="p-4">
-          <h3 className="text-lg font-medium truncate">{title}</h3>
+          <h3 className="text-lg font-medium truncate text-gray-800">{title}</h3>
           <div className="flex items-center text-sm text-gray-500 mt-1">
             <span>{city.name}</span>
             <span className="mx-1">•</span>

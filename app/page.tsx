@@ -7,6 +7,8 @@ import { getCities } from '@/lib/api/cities';
 import { getPromotions } from '@/lib/api/promotions';
 import ListingGrid from '@/components/listings/ListingGrid';
 import ListingSlider from '@/components/listings/ListingSlider';
+import { Listing } from '@/types';
+import { useRouter } from 'next/navigation';
 
 // Helper function to build query strings
 const buildQueryString = (params: Record<string, string | undefined>) => {
@@ -20,14 +22,60 @@ const buildQueryString = (params: Record<string, string | undefined>) => {
   return queryString ? `?${queryString}` : '';
 };
 
+// Mock forum data - replace with actual API calls when available
+const getForumTopics = async () => {
+  // This would be replaced with an actual API call to Discourse
+  return [
+    { id: 1, title: "Where to find best massage in NYC?", replies: 142, author: "JohnDoe" },
+    { id: 2, title: "Rate your recent experience", replies: 89, author: "JaneSmith" },
+    { id: 3, title: "New to the forum, need recommendations", replies: 67, author: "NewUser22" },
+    { id: 4, title: "Best places in Chicago?", replies: 58, author: "ChiTown" },
+    { id: 5, title: "Looking for recommendations in LA", replies: 45, author: "LALover" },
+  ];
+};
+
+const getTopPosters = async () => {
+  // This would be replaced with an actual API call to Discourse
+  return [
+    { rank: 1, username: "JohnDoe", posts: 346 },
+    { rank: 2, username: "SuperUser", posts: 289 },
+    { rank: 3, username: "ActivePoster", posts: 234 },
+    { rank: 4, username: "RegularGuy", posts: 187 },
+    { rank: 5, username: "TopContributor", posts: 156 },
+  ];
+};
+
+const getTopPointEarners = async () => {
+  // This would be replaced with an actual API call to Discourse
+  return [
+    { rank: 1, username: "ExpertUser", points: 4890 },
+    { rank: 2, username: "JohnDoe", points: 3560 },
+    { rank: 3, username: "HelpfulGuy", points: 2780 },
+    { rank: 4, username: "TopHelper", points: 2340 },
+    { rank: 5, username: "CommunityFan", points: 2120 },
+  ];
+};
+
 export default async function HomePage() {
   // Fetch data in parallel
-  const [featuredListingsResponse, latestListingsResponse, categoriesResponse, citiesResponse, promotionsResponse] = await Promise.all([
-    getListings({ page: 1, pageSize: 6, featured: true }),
-    getListings({ page: 1, pageSize: 10 }),
+  const [
+    featuredListingsResponse, 
+    latestListingsResponse, 
+    categoriesResponse, 
+    citiesResponse, 
+    promotionsResponse,
+    forumTopics,
+    topPosters,
+    topPointEarners
+  ] = await Promise.all([
+    getListings({ page: 1, pageSize: 24, featured: true }),
+    getListings({ page: 1, pageSize: 24 }),
     getCategories(),
     getCities(),
-    getPromotions('home')
+    getPromotions('home'),
+    getForumTopics(),
+    getTopPosters(),
+    getTopPointEarners()
   ]);
 
   const featuredListings = featuredListingsResponse.data;
@@ -37,47 +85,48 @@ export default async function HomePage() {
   const promotions = promotionsResponse.data;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-700 rounded-lg shadow-xl overflow-hidden mb-12">
-        <div className="px-8 py-16 md:py-20 md:px-12 lg:w-3/5">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-4">
-            Find What You're Looking For
-          </h1>
-          <p className="text-lg text-purple-100 mb-8">
-            Browse thousands of listings or create your own to reach the right audience.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link 
-              href="/auth/register" 
-              className="bg-white text-purple-600 hover:bg-purple-50 px-6 py-3 rounded-md font-medium text-center"
-            >
-              Post an Ad
-            </Link>
-            <Link 
-              href="#categories" 
-              className="bg-purple-500 text-white hover:bg-purple-400 px-6 py-3 rounded-md font-medium text-center"
-            >
-              Browse Categories
-            </Link>
+    <div className="flex flex-col">
+      {/* Hero Banner - Full Width */}
+      <div className="w-full bg-gradient-to-r from-purple-600 to-indigo-700 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+          <div className="max-w-lg">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-4">
+              Find What You're Looking For
+            </h1>
+            <p className="text-lg text-purple-100 mb-8">
+              Browse thousands of listings or create your own to reach the right audience.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link 
+                href="/listings" 
+                className="bg-white text-purple-600 hover:bg-purple-50 px-6 py-3 rounded-md font-medium text-center"
+              >
+                Browse Now
+              </Link>
+              <Link 
+                href="/auth/register" 
+                className="bg-purple-500 bg-opacity-60 text-white border border-purple-300 hover:bg-purple-400 px-6 py-3 rounded-md font-medium text-center"
+              >
+                Post an Ad
+              </Link>
+            </div>
           </div>
         </div>
+        {/* Optional background image */}
+        
       </div>
 
-      {/* Latest Listings Slider */}
-      <section className="mb-12">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Latest Listings</h2>
-          <Link href="/listings" className="text-purple-600 hover:text-purple-500 font-medium">
-            View All
-          </Link>
-        </div>
-        <ListingSlider listings={latestListings} />
-      </section>
+      {/* Latest Listings Section - Full Width with Slider */}
+      <ListingSlider 
+        listings={latestListings} 
+        title="Latest Listings" 
+        viewAllLink="/listings" 
+        compact={true}
+      />
 
       {/* Promotional Banner (if available) */}
       {promotions.length > 0 && (
-        <div className="mb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <Link href={promotions[0].link || '#'}>
             <div className="relative h-48 md:h-64 w-full rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
               <Image 
@@ -103,59 +152,25 @@ export default async function HomePage() {
         </div>
       )}
 
-      {/* Categories Section */}
-      <section id="categories" className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Browse by Category</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {categories.map((category) => (
-            <Link 
-              key={category.id} 
-              href={`/listings${buildQueryString({ category: category.slug })}`}
-              className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow flex flex-col items-center text-center"
-            >
-              {category.icon && (
-                <div className="w-12 h-12 mb-3">
-                  <Image 
-                    src={`${process.env.NEXT_PUBLIC_API_URL}${category.icon.url}`}
-                    alt={category.name}
-                    width={48}
-                    height={48}
-                    className="object-contain"
-                  />
-                </div>
-              )}
-              <span className="text-gray-800 font-medium">{category.name}</span>
+      {/* Featured Listings Section - Full Width */}
+      <div className="w-full bg-gray-50 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">Featured Listings</h2>
+            <Link href={`/listings${buildQueryString({ featured: 'true' })}`} className="text-purple-600 hover:text-purple-500 font-medium">
+              View All
             </Link>
-          ))}
+          </div>
+          <ListingGrid 
+            listings={featuredListings} 
+            compact={true} 
+            columns={6}
+          />
         </div>
-      </section>
+      </div>
 
-      {/* Cities Section */}
-      <section className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Browse by City</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {cities.map((city) => (
-            <Link 
-              key={city.id} 
-              href={`/listings${buildQueryString({ city: city.slug })}`}
-              className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow text-center"
-            >
-              <span className="text-gray-800 font-medium">{city.name}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Featured Listings Section */}
-      <section>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Featured Listings</h2>
-          <Link href={`/listings${buildQueryString({ featured: 'true' })}`} className="text-purple-600 hover:text-purple-500 font-medium">
-            View All
-          </Link>
-        </div>
-        <ListingGrid listings={featuredListings} />
-      </section>
+      {/* Forum Activity Section */}
+      
     </div>
   );
 }

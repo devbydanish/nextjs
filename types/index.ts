@@ -126,6 +126,7 @@ export interface FilterParams {
   city?: string;
   featured?: boolean;
   tags?: string[];
+  slug?: string;
   status?: "draft" | "published" | "pending" | "approved" | "rejected";
 }
 

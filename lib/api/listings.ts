@@ -4,11 +4,16 @@ import { ApiResponse, FilterParams, Listing, PaginationParams } from '@/types';
 export async function getListings(
   params: PaginationParams & FilterParams = { page: 1, pageSize: 10 }
 ): Promise<ApiResponse<Listing[]>> {
-  const { page, pageSize, category, city, featured, tags } = params;
+  const { page, pageSize, category, city, featured, tags, slug } = params;
   
   // Build filters
   let filters = {};
   
+  if (slug) {
+    // match slug in the slug field for example it will fetch all listing whose slug contains the slug value at start
+    filters = { ...filters, slug: { $startsWith: slug} };
+  }
+
   if (category) {
     filters = { ...filters, 'category': {
       slug: { $eq: category }
