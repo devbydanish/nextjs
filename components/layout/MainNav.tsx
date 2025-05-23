@@ -61,7 +61,7 @@ export default function MainNav() {
   };
   
   const handleCitySelect = (citySlug: string) => {
-    router.push(`/listings?city=${citySlug}`);
+    router.push(`/${citySlug}`);
     setShowCityDropdown(false);
   };
   

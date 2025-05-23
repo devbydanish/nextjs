@@ -23,10 +23,13 @@ export default function ListingCard({ listing, compact = false }: ListingCardPro
   const categorySlug = category?.slug;
   const citySlug = city?.slug;
   
+  // Build the new URL structure: /city/category/slug
+  const listingUrl = `/${citySlug}/${categorySlug}/${slug}`;
+  
   if (compact) {
     return (
       <div className="overflow-hidden bg-white hover:shadow-md transition-shadow rounded border border-gray-100">
-        <Link href={`/listings/${slug}`} className="block h-full">
+        <Link href={listingUrl} className="block h-full">
           <div className="relative aspect-[4/3] w-full">
             <Image
               src={imageUrl}
@@ -55,7 +58,7 @@ export default function ListingCard({ listing, compact = false }: ListingCardPro
   
   return (
     <div className="rounded-lg overflow-hidden shadow-md bg-white hover:shadow-lg transition-shadow border border-gray-100">
-      <Link href={`/listings/${slug}`} className="block h-full">
+      <Link href={listingUrl} className="block h-full">
         <div className="relative aspect-[4/3] w-full">
           <Image
             src={imageUrl}

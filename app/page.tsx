@@ -57,6 +57,9 @@ const getTopPointEarners = async () => {
 };
 
 export default async function HomePage() {
+  // Default to NYC listings, fallback to all listings if NYC doesn't exist
+  const defaultCitySlug = 'nyc';
+  
   // Fetch data in parallel
   const [
     featuredListingsResponse, 
@@ -68,8 +71,12 @@ export default async function HomePage() {
     topPosters,
     topPointEarners
   ] = await Promise.all([
-    getListings({ page: 1, pageSize: 24, featured: true }),
-    getListings({ page: 1, pageSize: 24 }),
+    getListings({ page: 1, pageSize: 24, featured: true, city: defaultCitySlug }).catch(() => 
+      getListings({ page: 1, pageSize: 24, featured: true })
+    ),
+    getListings({ page: 1, pageSize: 24, city: defaultCitySlug }).catch(() => 
+      getListings({ page: 1, pageSize: 24 })
+    ),
     getCategories(),
     getCities(),
     getPromotions('home'),
@@ -83,6 +90,11 @@ export default async function HomePage() {
   const categories = categoriesResponse.data;
   const cities = citiesResponse.data;
   const promotions = promotionsResponse.data;
+  
+  // Check if the default city exists
+  const defaultCity = cities.find(city => city.slug === defaultCitySlug);
+  const cityName = defaultCity ? defaultCity.name : 'the area';
+  const isDefaultCityAvailable = !!defaultCity;
 
   return (
     <div className="flex flex-col">
@@ -91,14 +103,14 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
           <div className="max-w-lg">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-4">
-              Find What You're Looking For
+              Find What You're Looking For{isDefaultCityAvailable ? ` in ${cityName}` : ''}
             </h1>
             <p className="text-lg text-purple-100 mb-8">
-              Browse thousands of listings or create your own to reach the right audience.
+              Browse thousands of listings{isDefaultCityAvailable ? ` in ${cityName}` : ''} or create your own to reach the right audience.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link 
-                href="/listings" 
+                href={isDefaultCityAvailable ? `/listings?city=${defaultCitySlug}` : '/listings'} 
                 className="bg-white text-purple-600 hover:bg-purple-50 px-6 py-3 rounded-md font-medium text-center"
               >
                 Browse Now
@@ -119,8 +131,8 @@ export default async function HomePage() {
       {/* Latest Listings Section - Full Width with Slider */}
       <ListingSlider 
         listings={latestListings} 
-        title="Latest Listings" 
-        viewAllLink="/listings" 
+        title={`Latest Listings${isDefaultCityAvailable ? ` in ${cityName}` : ''}`} 
+        viewAllLink={isDefaultCityAvailable ? `/listings?city=${defaultCitySlug}` : '/listings'} 
         compact={true}
       />
 
@@ -156,8 +168,8 @@ export default async function HomePage() {
       <div className="w-full bg-gray-50 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Featured Listings</h2>
-            <Link href={`/listings${buildQueryString({ featured: 'true' })}`} className="text-purple-600 hover:text-purple-500 font-medium">
+            <h2 className="text-2xl font-bold text-gray-800">Featured Listings{isDefaultCityAvailable ? ` in ${cityName}` : ''}</h2>
+            <Link href={isDefaultCityAvailable ? `/listings${buildQueryString({ city: defaultCitySlug, featured: 'true' })}` : `/listings${buildQueryString({ featured: 'true' })}`} className="text-purple-600 hover:text-purple-500 font-medium">
               View All
             </Link>
           </div>
@@ -168,6 +180,52 @@ export default async function HomePage() {
           />
         </div>
       </div>
+
+      {/* Other Cities Section */}
+      {isDefaultCityAvailable && cities.length > 1 && (
+        <div className="w-full py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Explore Other Cities</h2>
+              <p className="text-gray-600">Browse listings in other available cities</p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-3">
+              {cities.filter(city => city.slug !== defaultCitySlug).map(city => (
+                <Link
+                  key={city.id}
+                  href={`/${city.slug}`}
+                  className="bg-white border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all px-6 py-3 rounded-lg text-gray-700 hover:text-purple-600 font-medium"
+                >
+                  {city.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* All Cities Section - fallback when default city not available */}
+      {!isDefaultCityAvailable && cities.length > 0 && (
+        <div className="w-full py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Browse by City</h2>
+              <p className="text-gray-600">Select a city to view its listings</p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-3">
+              {cities.map(city => (
+                <Link
+                  key={city.id}
+                  href={`/${city.slug}`}
+                  className="bg-white border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all px-6 py-3 rounded-lg text-gray-700 hover:text-purple-600 font-medium"
+                >
+                  {city.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Forum Activity Section */}
       

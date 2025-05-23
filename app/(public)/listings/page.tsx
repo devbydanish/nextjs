@@ -56,7 +56,6 @@ export default function ListingsPage() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch cities, categories, and listings in parallel
         const [citiesResponse, categoriesResponse, listingsResponse] = await Promise.all([
           getCities(),
           getCategories(),
@@ -65,7 +64,6 @@ export default function ListingsPage() {
             pageSize: 12,
             city: citySlug,
             category: categorySlug,
-            slug: slug,
             featured: featured || undefined
           })
         ]);
@@ -80,7 +78,6 @@ export default function ListingsPage() {
         } else {
           setPagination(null);
         }
-        
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -89,7 +86,7 @@ export default function ListingsPage() {
     };
     
     fetchData();
-  }, [citySlug, categorySlug, page, featured]);
+  }, [citySlug, categorySlug, page, featured, slug]);
   
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
