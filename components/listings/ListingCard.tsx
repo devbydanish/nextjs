@@ -17,7 +17,7 @@ export default function ListingCard({ listing, compact = false }: ListingCardPro
     : null;
     
   const imageUrl = firstImage 
-    ? process.env.NEXT_PUBLIC_API_URL + firstImage.formats?.medium?.url || process.env.NEXT_PUBLIC_API_URL + firstImage.url 
+    ? process.env.NEXT_PUBLIC_API_URL + firstImage?.url
     : '/placeholder-image.jpg';
     
   const categorySlug = category?.slug;
