@@ -7,6 +7,12 @@ import { getCategoryBySlug } from '@/lib/api/categories';
 import ListingGrid from '@/components/listings/ListingGrid';
 import { Metadata } from 'next';
 
+// Add ISR revalidation - revalidate every 60 seconds
+export const revalidate = 60;
+
+// Ensure this page is always dynamic for immediate updates
+export const dynamic = 'force-dynamic';
+
 type Props = {
   params: Promise<{
     city: string;

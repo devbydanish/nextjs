@@ -1,6 +1,7 @@
 export interface Listing {
   id: number;   
   title: string;
+  subtitle?: string;
   description: string;
   slug: string;
   featured: boolean;
@@ -132,6 +133,7 @@ export interface FilterParams {
 
 export interface ListingFormData {
   title: string;
+  subtitle?: string;
   description: string;
   phone: string;
   email?: string;

@@ -9,7 +9,7 @@ interface ListingCardProps {
 }
 
 export default function ListingCard({ listing, compact = false }: ListingCardProps) {
-  const { title, slug, phone, featured, images, category, city } = listing;
+  const { title, subtitle, slug, phone, featured, images, category, city } = listing;
   
   // Get first image or use placeholder
   const firstImage = images && images.length > 0 
@@ -45,10 +45,8 @@ export default function ListingCard({ listing, compact = false }: ListingCardPro
           </div>
           <div className="p-2">
             <h3 className="text-sm font-medium truncate text-gray-800">{title}</h3>
-            {city && (
-              <div className="flex items-center text-xs text-gray-500 mt-0.5 truncate">
-                <span>{city.name}</span>
-              </div>
+            {subtitle && (
+              <p className="text-xs text-gray-600 mt-0.5 truncate">{subtitle}</p>
             )}
           </div>
         </Link>
@@ -74,11 +72,9 @@ export default function ListingCard({ listing, compact = false }: ListingCardPro
         </div>
         <div className="p-4">
           <h3 className="text-lg font-medium truncate text-gray-800">{title}</h3>
-          <div className="flex items-center text-sm text-gray-500 mt-1">
-            <span>{city.name}</span>
-            <span className="mx-1">•</span>
-            <span>{category.name}</span>
-          </div>
+          {subtitle && (
+            <p className="text-sm text-gray-600 mt-1 line-clamp-2">{subtitle}</p>
+          )}
           {phone && (
             <div className="mt-3 text-sm text-gray-700">
               <span className="font-medium">Contact: </span>

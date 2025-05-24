@@ -8,6 +8,12 @@ import { getCategoryBySlug } from '@/lib/api/categories';
 import { Listing, Tag } from '@/types';
 import { Metadata } from 'next';
 
+// Add ISR revalidation - revalidate every 60 seconds
+export const revalidate = 60;
+
+// Ensure this page is always dynamic for immediate updates
+export const dynamic = 'force-dynamic';
+
 interface ListingDetailPageProps {
   params: Promise<{
     city: string;

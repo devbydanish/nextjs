@@ -7,8 +7,15 @@ import { getCities } from '@/lib/api/cities';
 import { getPromotions } from '@/lib/api/promotions';
 import ListingGrid from '@/components/listings/ListingGrid';
 import ListingSlider from '@/components/listings/ListingSlider';
+import PromotionSlider from '@/components/promotions/PromotionSlider';
 import { Listing } from '@/types';
 import { useRouter } from 'next/navigation';
+
+// Add ISR revalidation - revalidate every 60 seconds
+export const revalidate = 60;
+
+// Ensure this page is always dynamic for immediate updates
+export const dynamic = 'force-dynamic';
 
 // Helper function to build query strings
 const buildQueryString = (params: Record<string, string | undefined>) => {
@@ -90,6 +97,8 @@ export default async function HomePage() {
   const categories = categoriesResponse.data;
   const cities = citiesResponse.data;
   const promotions = promotionsResponse.data;
+
+  console.log(promotions)
   
   // Check if the default city exists
   const defaultCity = cities.find(city => city.slug === defaultCitySlug);
@@ -100,33 +109,12 @@ export default async function HomePage() {
     <div className="flex flex-col">
       {/* Hero Banner - Full Width */}
       <div className="w-full bg-gradient-to-r from-purple-600 to-indigo-700 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-          <div className="max-w-lg">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-4">
-              Find What You're Looking For{isDefaultCityAvailable ? ` in ${cityName}` : ''}
-            </h1>
-            <p className="text-lg text-purple-100 mb-8">
-              Browse thousands of listings{isDefaultCityAvailable ? ` in ${cityName}` : ''} or create your own to reach the right audience.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link 
-                href={isDefaultCityAvailable ? `/listings?city=${defaultCitySlug}` : '/listings'} 
-                className="bg-white text-purple-600 hover:bg-purple-50 px-6 py-3 rounded-md font-medium text-center"
-              >
-                Browse Now
-              </Link>
-              <Link 
-                href="/auth/register" 
-                className="bg-purple-500 bg-opacity-60 text-white border border-purple-300 hover:bg-purple-400 px-6 py-3 rounded-md font-medium text-center"
-              >
-                Post an Ad
-              </Link>
-            </div>
-          </div>
-        </div>
-        {/* Optional background image */}
-        
-      </div>
+         
+       {promotions.length > 0 && (
+         <PromotionSlider promotions={promotions} />
+       )}
+         
+       </div>
 
       {/* Latest Listings Section - Full Width with Slider */}
       <ListingSlider 
@@ -135,34 +123,6 @@ export default async function HomePage() {
         viewAllLink={isDefaultCityAvailable ? `/listings?city=${defaultCitySlug}` : '/listings'} 
         compact={true}
       />
-
-      {/* Promotional Banner (if available) */}
-      {promotions.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <Link href={promotions[0].link || '#'}>
-            <div className="relative h-48 md:h-64 w-full rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-              <Image 
-                src={`${process.env.NEXT_PUBLIC_API_URL}${promotions[0].image.url}`}
-                alt={promotions[0].title}
-                className="object-cover"
-                fill
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent flex items-end">
-                <div className="p-6 text-white">
-                  <h3 className="text-xl font-bold mb-2">{promotions[0].title}</h3>
-                  {promotions[0].description && (
-                    <p className="text-white/90 mb-2">{promotions[0].description}</p>
-                  )}
-                  <span className="inline-block bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-                    Learn More
-                  </span>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </div>
-      )}
 
       {/* Featured Listings Section - Full Width */}
       <div className="w-full bg-gray-50 py-12">

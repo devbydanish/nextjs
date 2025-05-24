@@ -20,6 +20,7 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
   
   const [formData, setFormData] = useState<ListingFormData>({
     title: initialData?.title || '',
+    subtitle: initialData?.subtitle || '',
     description: initialData?.description || '',
     phone: initialData?.phone || '',
     email: initialData?.email || user?.email || '',
@@ -130,6 +131,7 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
       // Create data object for the API
       const listingPayload = {
         title: formData.title,
+        subtitle: formData.subtitle,
         description: formData.description,
         phone: formData.phone,
         email: formData.email,
@@ -238,6 +240,23 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
         />
+      </div>
+      
+      {/* Subtitle */}
+      <div>
+        <label htmlFor="subtitle" className="block text-sm font-medium text-gray-700">
+          Subtitle
+        </label>
+        <input
+          type="text"
+          id="subtitle"
+          name="subtitle"
+          value={formData.subtitle}
+          onChange={handleChange}
+          placeholder="Brief description or tagline (optional)"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+        />
+        <p className="mt-1 text-sm text-gray-500">A short subtitle that appears below the title on listing cards</p>
       </div>
       
       {/* Description */}

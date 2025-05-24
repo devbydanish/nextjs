@@ -8,7 +8,14 @@ import { getCities, getCityBySlug } from '@/lib/api/cities';
 import { getPromotions } from '@/lib/api/promotions';
 import ListingGrid from '@/components/listings/ListingGrid';
 import ListingSlider from '@/components/listings/ListingSlider';
+import PromotionSlider from '@/components/promotions/PromotionSlider';
 import { Listing } from '@/types';
+
+// Add ISR revalidation - revalidate every 60 seconds
+export const revalidate = 60;
+
+// Ensure this page is always dynamic for immediate updates
+export const dynamic = 'force-dynamic';
 
 // Helper function to build query strings
 const buildQueryString = (params: Record<string, string | undefined>) => {
@@ -175,30 +182,7 @@ export default async function CityPage({ params }: CityPageProps) {
 
         {/* Promotional Banner (if available) */}
         {promotions.length > 0 && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <Link href={promotions[0].link || '#'}>
-              <div className="relative h-48 md:h-64 w-full rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-                <Image 
-                  src={`${process.env.NEXT_PUBLIC_API_URL}${promotions[0].image.url}`}
-                  alt={promotions[0].title}
-                  className="object-cover"
-                  fill
-                  priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent flex items-end">
-                  <div className="p-6 text-white">
-                    <h3 className="text-xl font-bold mb-2">{promotions[0].title}</h3>
-                    {promotions[0].description && (
-                      <p className="text-white/90 mb-2">{promotions[0].description}</p>
-                    )}
-                    <span className="inline-block bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-                      Learn More
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          </div>
+          <PromotionSlider promotions={promotions} />
         )}
 
         {/* Featured Listings Section - Full Width */}
