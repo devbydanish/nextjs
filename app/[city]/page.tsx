@@ -113,31 +113,12 @@ export default async function CityPage({ params }: CityPageProps) {
       <div className="flex flex-col">
         {/* Hero Banner - Full Width */}
         <div className="w-full bg-gradient-to-r from-purple-600 to-indigo-700 relative">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-            <div className="max-w-lg">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-4">
-                Find What You're Looking For in {cityData.name}
-              </h1>
-              <p className="text-lg text-purple-100 mb-8">
-                Browse thousands of listings in {cityData.name} or create your own to reach the right audience.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link 
-                  href={`/listings?city=${citySlug}`} 
-                  className="bg-white text-purple-600 hover:bg-purple-50 px-6 py-3 rounded-md font-medium text-center"
-                >
-                  Browse Now
-                </Link>
-                <Link 
-                  href="/auth/register" 
-                  className="bg-purple-500 bg-opacity-60 text-white border border-purple-300 hover:bg-purple-400 px-6 py-3 rounded-md font-medium text-center"
-                >
-                  Post an Ad
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
+         
+       {promotions.length > 0 && (
+         <PromotionSlider promotions={promotions} />
+       )}
+         
+       </div>
 
         {/* Latest Listings Section - Full Width with Slider */}
         <ListingSlider 
@@ -178,11 +159,6 @@ export default async function CityPage({ params }: CityPageProps) {
               </div>
             </div>
           </div>
-        )}
-
-        {/* Promotional Banner (if available) */}
-        {promotions.length > 0 && (
-          <PromotionSlider promotions={promotions} />
         )}
 
         {/* Featured Listings Section - Full Width */}
