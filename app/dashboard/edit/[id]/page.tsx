@@ -8,13 +8,7 @@ import ListingForm from '@/components/listings/ListingForm';
 import { getListingById } from '@/lib/api/listings';
 import { Listing } from '@/types';
 
-interface EditListingPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function EditListingPage({ params }: EditListingPageProps) {
+  export default function EditListingPage({ params }: any) {
   const router = useRouter();
   const { id } = params;
   
