@@ -29,6 +29,7 @@ const buildQueryString = (params: Record<string, string | undefined>) => {
 
 // Component for Latest Listings section
 const LatestListingsSection = ({ listings }: { listings: Listing[] }) => {
+  console.log(listings);
   // Sort listings: if homepagePosition is available, use it, otherwise use date (newest first)
   const sortedListings = [...listings].sort((a, b) => {
     // If both have homepage positions, sort by position

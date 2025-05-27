@@ -31,7 +31,9 @@ export async function getListings(
   }
   
   if (status) {
-    filters = { ...filters, status: { $eq: status } };
+    if (status === 'published') {
+      filters = { ...filters, published: { $eq: true } };
+    }
   }
   
   if (tags && tags.length > 0) {
@@ -51,8 +53,9 @@ export async function getListings(
   };
 
   console.log(queryParams);
-  
+  console.log(filters);
   const { data } = await apiClient.get('/api/listings', { params: { ...queryParams } });
+  console.log(data);
   return data;
 }
 

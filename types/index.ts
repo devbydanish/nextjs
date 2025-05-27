@@ -159,6 +159,7 @@ export interface ListingFormData {
   advertiserId?: number;
   homepagePosition?: number;
   categoryPosition?: number;
+  published?: boolean;
 }
 
 export interface LoginFormData {

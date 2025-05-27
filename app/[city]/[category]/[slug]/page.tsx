@@ -81,7 +81,8 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
     }
     
     const { 
-      title, 
+      title,
+      subtitle,
       description, 
       phone,
       email,
@@ -92,15 +93,14 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
       city,
       tags,
       featured,
-      createdAt
+      createdAt,
+      websiteUrl,
+      bbsThreadUrl
     } = listing;
-    
-    const categoryName = category.name;
-    const cityName = city.name;
     
     // Format description text with paragraphs
     const formattedDescription = description.split('\n').map((paragraph: string, i: number) => (
-      <p key={i} className="mb-4">{paragraph}</p>
+      <p key={i} className="mb-4 last:mb-0">{paragraph}</p>
     ));
 
     // Format date
@@ -111,147 +111,163 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
     });
     
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumbs */}
         <nav className="mb-6 text-sm">
-          <ol className="flex space-x-2">
+          <ol className="flex flex-wrap gap-2 items-center">
             <li>
               <Link href="/" className="text-purple-600 hover:text-purple-500">
                 Home
               </Link>
             </li>
-            <li className="text-gray-500">/</li>
+            <li className="text-gray-400">/</li>
             <li>
               <Link href={`/${citySlug}`} className="text-purple-600 hover:text-purple-500">
-                {cityName}
+                {city.name}
               </Link>
             </li>
-            <li className="text-gray-500">/</li>
+            <li className="text-gray-400">/</li>
             <li>
-              <Link href={`/listings?city=${citySlug}&category=${categorySlug}`} className="text-purple-600 hover:text-purple-500">
-                {categoryName}
+              <Link href={`/${citySlug}/${categorySlug}`} className="text-purple-600 hover:text-purple-500">
+                {category.name}
               </Link>
             </li>
-            <li className="text-gray-500">/</li>
-            <li className="text-gray-500 truncate max-w-[200px]">{title}</li>
           </ol>
         </nav>
         
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {/* Image Gallery */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
-            <div className="relative h-80 bg-gray-100 rounded-lg overflow-hidden">
-              {images && images.length > 0 ? (
-                <Image
-                  src={`${process.env.NEXT_PUBLIC_API_URL}${images[0].url}`}
-                  alt={title}
-                  className="object-cover"
-                  fill
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <span className="text-gray-400">No image available</span>
-                </div>
-              )}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+          {/* Main Image */}
+          {images && images.length > 0 && (
+            <div className="relative h-[400px] bg-gray-100">
+              <Image
+                src={`${process.env.NEXT_PUBLIC_API_URL}${images[0].url}`}
+                alt={title}
+                className="object-cover"
+                fill
+                priority
+              />
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {images && images.slice(1).map((image: any, index: number) => (
-                <div key={index} className="relative h-32 bg-gray-100 rounded-lg overflow-hidden">
+          )}
+          
+          {/* Thumbnail Gallery */}
+          {images && images.length > 1 && (
+            <div className="grid grid-cols-6 gap-2 p-2 bg-gray-50 border-t border-gray-100">
+              {images.slice(1).map((image: any, index: number) => (
+                <div key={index} className="relative aspect-square rounded-md overflow-hidden">
                   <Image
                     src={`${process.env.NEXT_PUBLIC_API_URL}${image.url}`}
                     alt={`${title} - Image ${index + 2}`}
-                    className="object-cover"
+                    className="object-cover hover:opacity-90 transition-opacity"
                     fill
                   />
                 </div>
               ))}
             </div>
-          </div>
+          )}
           
-          {/* Listing Content */}
-          <div className="p-6">
-            <div className="flex flex-wrap items-center gap-2 mb-4">
-              <Link href={`/listings?category=${categorySlug}`} className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded hover:bg-purple-200">
-                {categoryName}
-              </Link>
-              <Link href={`/${citySlug}`} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded hover:bg-gray-200">
-                {cityName}
-              </Link>
-              {featured && (
-                <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">
-                  Featured
+          {/* Content */}
+          <div className="p-6 space-y-6">
+            {/* Header */}
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="bg-purple-100 text-purple-800 text-xs px-2.5 py-1 rounded-full">
+                  {category.name}
                 </span>
-              )}
-              {tags && tags.map((tag: Tag) => (
-                <span 
-                  key={tag.id} 
-                  className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
-                >
-                  {tag.name}
+                <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-1 rounded-full">
+                  {city.name}
                 </span>
-              ))}
-              <span className="text-gray-500 text-xs ml-auto">
-                Posted on {formattedDate}
-              </span>
-            </div>
-            
-            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{title}</h1>
-              {price && (
-                <div className="text-xl font-bold text-purple-600 whitespace-nowrap">
-                  ${price.toFixed(2)}
-                </div>
-              )}
-            </div>
-            
-            <div className="prose max-w-none mb-8">
-              {formattedDescription}
-            </div>
-            
-            {/* Contact Information */}
-            <div className="bg-gray-50 p-6 rounded-md mb-6">
-              <h2 className="text-lg font-medium mb-4">Contact Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {phone && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-1">Phone</h3>
-                    <a href={`tel:${phone}`} className="text-purple-600 hover:text-purple-500 font-medium">
-                      {phone}
-                    </a>
-                  </div>
+                {featured && (
+                  <span className="bg-yellow-100 text-yellow-800 text-xs px-2.5 py-1 rounded-full">
+                    Featured
+                  </span>
                 )}
-                {email && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-1">Email</h3>
-                    <a href={`mailto:${email}`} className="text-purple-600 hover:text-purple-500 font-medium">
-                      {email}
-                    </a>
-                  </div>
+                <span className="text-gray-400 text-xs ml-auto">
+                  Posted {formattedDate}
+                </span>
+              </div>
+              
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{title}</h1>
+                {subtitle && (
+                  <p className="text-lg text-gray-600">{subtitle}</p>
                 )}
-                {address && (
-                  <div className="md:col-span-2">
-                    <h3 className="text-sm font-medium text-gray-700 mb-1">Address</h3>
-                    <p className="text-gray-900">{address}</p>
+                {price && (
+                  <div className="mt-2 text-xl font-bold text-purple-600">
+                    ${price.toFixed(2)}
                   </div>
                 )}
               </div>
             </div>
             
-            {/* Back to City Listings */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link 
-                href={`/${citySlug}`}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-md font-medium text-center"
-              >
-                ← Back to {cityName}
-              </Link>
-              <Link 
-                href={`/listings?city=${citySlug}&category=${categorySlug}`}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-md font-medium text-center"
-              >
-                View All {categoryName} in {cityName}
-              </Link>
+            {/* Description */}
+            <div className="prose max-w-none text-gray-600">
+              {formattedDescription}
             </div>
+            
+            {/* Contact Information */}
+            <div className="bg-gray-50 rounded-lg p-6 space-y-4">
+              <h2 className="text-lg font-semibold text-gray-900">Contact Information</h2>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {phone && (
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500 mb-1">Phone</dt>
+                    <dd>
+                      <a href={`tel:${phone}`} className="text-purple-600 hover:text-purple-500">
+                        {phone}
+                      </a>
+                    </dd>
+                  </div>
+                )}
+                {email && (
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500 mb-1">Email</dt>
+                    <dd>
+                      <a href={`mailto:${email}`} className="text-purple-600 hover:text-purple-500">
+                        {email}
+                      </a>
+                    </dd>
+                  </div>
+                )}
+                {address && (
+                  <div className="sm:col-span-2">
+                    <dt className="text-sm font-medium text-gray-500 mb-1">Address</dt>
+                    <dd className="text-gray-900">{address}</dd>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* External Links */}
+            {(websiteUrl || bbsThreadUrl) && (
+              <div className="flex flex-wrap gap-3">
+                {websiteUrl && (
+                  <a
+                    href={websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 bg-white border border-gray-200 hover:border-purple-300 text-gray-600 hover:text-purple-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Visit Website
+                  </a>
+                )}
+                {bbsThreadUrl && (
+                  <a
+                    href={bbsThreadUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 bg-white border border-gray-200 hover:border-purple-300 text-gray-600 hover:text-purple-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                    </svg>
+                    View BBS Thread
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
