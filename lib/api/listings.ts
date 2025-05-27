@@ -4,7 +4,7 @@ import { ApiResponse, FilterParams, Listing, PaginationParams } from '@/types';
 export async function getListings(
   params: PaginationParams & FilterParams = { page: 1, pageSize: 10 }
 ): Promise<ApiResponse<Listing[]>> {
-  const { page, pageSize, category, city, featured, tags, slug } = params;
+  const { page, pageSize, category, city, featured, tags, slug, status } = params;
   
   // Build filters
   let filters = {};
@@ -30,6 +30,10 @@ export async function getListings(
     filters = { ...filters, featured: { $eq: featured } };
   }
   
+  if (status) {
+    filters = { ...filters, status: { $eq: status } };
+  }
+  
   if (tags && tags.length > 0) {
     filters = { ...filters, 'tags': {
       slug: { $in: tags }
@@ -42,12 +46,65 @@ export async function getListings(
       page,
       pageSize
     },
-    filters
+    filters,
+    sort: ['createdAt:desc'] // Default sort by creation date
   };
 
   console.log(queryParams);
   
   const { data } = await apiClient.get('/api/listings', { params: { ...queryParams } });
+  return data;
+}
+
+// Get listings ordered by homepage position for admin management
+export async function getListingsForHomepageManagement(): Promise<ApiResponse<Listing[]>> {
+  const { data } = await apiClient.get('/api/listings', {
+    params: {
+      populate: ['images', 'category', 'city', 'tags'],
+      sort: ['homepagePosition:asc', 'createdAt:desc'],
+      pagination: {
+        page: 1,
+        pageSize: 100
+      }
+    }
+  });
+  return data;
+}
+
+// Get listings by category ordered by category position for admin management
+export async function getListingsByCategoryForManagement(categorySlug: string): Promise<ApiResponse<Listing[]>> {
+  const { data } = await apiClient.get('/api/listings', {
+    params: {
+      filters: {
+        'category': {
+          slug: { $eq: categorySlug }
+        }
+      },
+      populate: ['images', 'category', 'city', 'tags'],
+      sort: ['categoryPosition:asc', 'createdAt:desc'],
+      pagination: {
+        page: 1,
+        pageSize: 100
+      }
+    }
+  });
+  return data;
+}
+
+// Update listing position (admin only)
+export async function updateListingPosition(
+  id: number, 
+  positionData: { homepagePosition?: number; categoryPosition?: number }
+): Promise<ApiResponse<Listing>> {
+  const { data } = await apiClient.put(`/api/listings/${id}`, { 
+    data: positionData 
+  });
+  return data;
+}
+
+// Admin create listing function
+export async function adminCreateListing(listingData: any): Promise<ApiResponse<Listing>> {
+  const { data } = await apiClient.post('/api/listings', { data: listingData });
   return data;
 }
 

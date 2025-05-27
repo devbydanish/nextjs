@@ -29,7 +29,7 @@ This is the frontend application for Lust66, a classified listings platform buil
 
 ### Prerequisites
 
-- Node.js 18.x or later
+- Node.js 20
 - A running Strapi backend (see below)
 
 ### Environment Setup
@@ -38,30 +38,14 @@ Create a `.env.local` file in the root directory with the following variables:
 
 ```
 NEXT_PUBLIC_API_URL=http://localhost:1337
-NEXT_PUBLIC_JWT_SECRET=your-jwt-secret-key
 ```
 
-### Installation
-
-1. Clone the repository:
-   ```
-   git clone https://github.com/yourusername/lust66-frontend.git
-   cd lust66-frontend
-   ```
-
-2. Install dependencies:
-   ```
-   npm install
-   ```
-
-3. Run the development server:
-   ```
-   npm run dev
-   ```
-
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
 ### Connecting to Strapi Backend
+
+.env 
+```
+NEXT_PUBLIC_API_URL=https://strapi.lust66.com
+```
 
 This frontend is designed to work with a Strapi backend that has the following content types:
 - Listings
@@ -96,15 +80,6 @@ The Strapi backend should be running at `http://localhost:1337` by default.
 │   └── types/              # TypeScript type definitions
 └── README.md               # This README file
 ```
-
-## Deployment
-
-This Next.js application can be deployed to Vercel with minimal configuration:
-
-1. Push your code to a GitHub repository
-2. Import the project in Vercel
-3. Configure environment variables
-4. Deploy
 
 ## License
 

@@ -22,6 +22,8 @@ export interface Listing {
   websiteUrl?: string;
   bbsThreadUrl?: string;
   advertiserId?: number;
+  homepagePosition?: number;
+  categoryPosition?: number;
 }
 
 export interface Image {
@@ -155,6 +157,8 @@ export interface ListingFormData {
   websiteUrl?: string;
   bbsThreadUrl?: string;
   advertiserId?: number;
+  homepagePosition?: number;
+  categoryPosition?: number;
 }
 
 export interface LoginFormData {
