@@ -31,7 +31,12 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
     category: initialData?.category?.id || 0,
     city: initialData?.city?.id || 0,
     tags: initialData?.tags?.map(tag => tag.id) || [],
-    images: []
+    images: [],
+    linkTargetType: initialData?.linkTargetType || 'internal',
+    linkTargetValue: initialData?.linkTargetValue || '',
+    websiteUrl: initialData?.websiteUrl || '',
+    bbsThreadUrl: initialData?.bbsThreadUrl || '',
+    advertiserId: user?.id
   });
   
   const [categories, setCategories] = useState<Category[]>([]);
@@ -143,7 +148,11 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
         city: formData.city,
         tags: formData.tags,
         images: allImageIds,
-        user: user?.id
+        linkTargetType: formData.linkTargetType,
+        linkTargetValue: formData.linkTargetValue,
+        websiteUrl: formData.websiteUrl,
+        bbsThreadUrl: formData.bbsThreadUrl,
+        advertiserId: user?.id
       };
       
       // Create form data with the payload
@@ -251,12 +260,11 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
           type="text"
           id="subtitle"
           name="subtitle"
-          value={formData.subtitle}
+          value={formData.subtitle || ''}
           onChange={handleChange}
-          placeholder="Brief description or tagline (optional)"
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+          placeholder="Displayed on card under title"
         />
-        <p className="mt-1 text-sm text-gray-500">A short subtitle that appears below the title on listing cards</p>
       </div>
       
       {/* Description */}
@@ -282,7 +290,7 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
           {/* Phone */}
           <div>
             <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-              Phone Number
+              Phone Number <span className="text-red-500">*</span>
             </label>
             <input
               type="tel"
@@ -290,8 +298,12 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
               name="phone"
               value={formData.phone}
               onChange={handleChange}
+              required
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
             />
+            <p className="mt-1 text-xs text-gray-500">
+              This will be masked for your privacy
+            </p>
           </div>
           
           {/* Email */}
@@ -520,16 +532,150 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
         </div>
       </div>
       
+      {/* Ad Card Click Link Options */}
+      <div className="border-t border-gray-200 pt-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Ad Card Click Options</h3>
+        
+        <div className="space-y-4">
+          <div className="flex items-center">
+            <input
+              id="link-internal"
+              name="linkTargetType"
+              type="radio"
+              value="internal"
+              checked={formData.linkTargetType === 'internal'}
+              onChange={handleChange}
+              className="focus:ring-purple-500 h-4 w-4 text-purple-600 border-gray-300"
+            />
+            <label htmlFor="link-internal" className="ml-3 block text-sm font-medium text-gray-700">
+              Open ad detail page (default)
+            </label>
+          </div>
+          
+          <div className="flex items-start">
+            <div className="flex items-center h-5">
+              <input
+                id="link-external"
+                name="linkTargetType"
+                type="radio"
+                value="external"
+                checked={formData.linkTargetType === 'external'}
+                onChange={handleChange}
+                className="focus:ring-purple-500 h-4 w-4 text-purple-600 border-gray-300"
+              />
+            </div>
+            <div className="ml-3 flex-grow">
+              <label htmlFor="link-external" className="block text-sm font-medium text-gray-700">
+                Link to external website
+              </label>
+              {formData.linkTargetType === 'external' && (
+                <input
+                  type="url"
+                  name="linkTargetValue"
+                  value={formData.linkTargetValue || ''}
+                  onChange={handleChange}
+                  placeholder="https://"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                />
+              )}
+            </div>
+          </div>
+          
+          <div className="flex items-start">
+            <div className="flex items-center h-5">
+              <input
+                id="link-bbs"
+                name="linkTargetType"
+                type="radio"
+                value="bbs"
+                checked={formData.linkTargetType === 'bbs'}
+                onChange={handleChange}
+                className="focus:ring-purple-500 h-4 w-4 text-purple-600 border-gray-300"
+              />
+            </div>
+            <div className="ml-3 flex-grow">
+              <label htmlFor="link-bbs" className="block text-sm font-medium text-gray-700">
+                Link to official BBS post
+              </label>
+              {formData.linkTargetType === 'bbs' && (
+                <input
+                  type="url"
+                  name="linkTargetValue"
+                  value={formData.linkTargetValue || ''}
+                  onChange={handleChange}
+                  placeholder="https://"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Ad Detail Page Link Options */}
+      <div className="border-t border-gray-200 pt-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Ad Detail Page Links</h3>
+        
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="websiteUrl" className="block text-sm font-medium text-gray-700">
+              Advertiser Website URL (optional)
+            </label>
+            <input
+              type="url"
+              id="websiteUrl"
+              name="websiteUrl"
+              value={formData.websiteUrl || ''}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+              placeholder="https://"
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="bbsThreadUrl" className="block text-sm font-medium text-gray-700">
+              BBS Thread URL (optional)
+            </label>
+            <input
+              type="url"
+              id="bbsThreadUrl"
+              name="bbsThreadUrl"
+              value={formData.bbsThreadUrl || ''}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+              placeholder="https://"
+            />
+          </div>
+        </div>
+      </div>
+      
+      {/* Terms & Conditions */}
+      <div className="relative flex items-start">
+        <div className="flex items-center h-5">
+          <input
+            id="terms"
+            name="terms"
+            type="checkbox"
+            required
+            className="focus:ring-purple-500 h-4 w-4 text-purple-600 border-gray-300 rounded"
+          />
+        </div>
+        <div className="ml-3 text-sm">
+          <label htmlFor="terms" className="font-medium text-gray-700">
+            I agree to the terms and conditions
+          </label>
+          <p className="text-gray-500">
+            By submitting this listing, you agree to our terms of service and privacy policy.
+          </p>
+        </div>
+      </div>
+      
       {/* Submit Button */}
       <div className="flex justify-end">
         <button
           type="submit"
           disabled={isLoading}
-          className={`px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${
-            isLoading
-              ? 'bg-purple-400 cursor-not-allowed'
-              : 'bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500'
-          }`}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md flex items-center space-x-2 disabled:opacity-50"
         >
           {isLoading ? 'Saving...' : isEditing ? 'Update Listing' : 'Create Listing'}
         </button>

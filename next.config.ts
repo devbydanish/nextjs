@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+    domains: ['strapi.lust66.com','localhost'],
   },
   // Optimize for dynamic content from Strapi
   experimental: {

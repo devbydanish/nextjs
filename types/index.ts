@@ -17,6 +17,11 @@ export interface Listing {
   category: Category;
   city: City;
   tags: Tag[];
+  linkTargetType?: "internal" | "external" | "bbs";
+  linkTargetValue?: string;
+  websiteUrl?: string;
+  bbsThreadUrl?: string;
+  advertiserId?: number;
 }
 
 export interface Image {
@@ -145,6 +150,11 @@ export interface ListingFormData {
   city: number;
   tags: number[];
   images: File[];
+  linkTargetType?: "internal" | "external" | "bbs";
+  linkTargetValue?: string;
+  websiteUrl?: string;
+  bbsThreadUrl?: string;
+  advertiserId?: number;
 }
 
 export interface LoginFormData {

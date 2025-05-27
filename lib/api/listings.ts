@@ -68,6 +68,7 @@ export async function getListingBySlug(slug: string): Promise<ApiResponse<Listin
 export async function getUserListings(userId: number): Promise<ApiResponse<Listing[]>> {
   const { data } = await apiClient.get('/api/listings', {
     params: {
+      filters: { advertiserId: { id: { $eq: userId } } },
       populate: ['images', 'category', 'city', 'tags']
     }
   });
@@ -107,7 +108,12 @@ export async function createListing(listingData: FormData): Promise<ApiResponse<
   // Create the listing with the file IDs
   const listingPayload = {
     ...payload,
-    images: fileIds
+    images: fileIds,
+    linkTargetType: payload.linkTargetType || 'internal',
+    linkTargetValue: payload.linkTargetValue || '',
+    websiteUrl: payload.websiteUrl || '',
+    bbsThreadUrl: payload.bbsThreadUrl || '',
+    advertiserId: payload.advertiserId
   };
   
   const { data } = await apiClient.post('/api/listings', { data: listingPayload });
@@ -129,7 +135,12 @@ export async function updateListing(id: number, listingData: FormData): Promise<
   // Update the listing with the file IDs
   const listingPayload = {
     ...payload,
-    images: fileIds
+    images: fileIds,
+    linkTargetType: payload.linkTargetType || 'internal',
+    linkTargetValue: payload.linkTargetValue || '',
+    websiteUrl: payload.websiteUrl || '',
+    bbsThreadUrl: payload.bbsThreadUrl || '',
+    advertiserId: payload.advertiserId
   };
   
   const { data } = await apiClient.put(`/api/listings/${id}`, { data: listingPayload });
@@ -138,4 +149,13 @@ export async function updateListing(id: number, listingData: FormData): Promise<
 
 export async function deleteListing(id: number): Promise<void> {
   await apiClient.delete(`/api/listings/${id}`);
+}
+
+export async function getListingById(id: string | number): Promise<ApiResponse<Listing>> {
+  const { data } = await apiClient.get(`/api/listings/${id}`, {
+    params: {
+      populate: ['images', 'category', 'city', 'tags']
+    }
+  });
+  return data;
 } 
