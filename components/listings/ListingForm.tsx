@@ -146,7 +146,6 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
         approvalStatus: isEditing && initialData?.approvalStatus === 'approved' ? 'approved' : 'pending',
         category: formData.category,
         city: formData.city,
-        // tags: formData.tags,
         images: allImageIds,
         linkTargetType: formData.linkTargetType,
         linkTargetValue: formData.linkTargetValue,
