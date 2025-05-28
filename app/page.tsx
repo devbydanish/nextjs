@@ -217,7 +217,7 @@ export default async function HomePage() {
       promotionsResponse
     ] = await Promise.all([
       // Get latest listings site-wide (will be sorted by position/date in component)
-      getListings({ page: 1, pageSize: 10, status: "published" }).catch(() => ({ data: [], meta: {} })),
+      getListings({ page: 1, pageSize: 10, approvalStatus: "published" }).catch(() => ({ data: [], meta: {} })),
       getCategories(),
       getCities(),
       getPromotions('home')
@@ -238,7 +238,7 @@ export default async function HomePage() {
               page: 1, 
               pageSize: 12, // Get more to have enough for multiple rows
               category: category.slug,
-              status: "published"
+              approvalStatus: "published"
             });
             return { category, listings: response.data || [] };
           } catch (error) {
