@@ -5,7 +5,7 @@ export interface Listing {
   description: string;
   slug: string;
   featured: boolean;
-  status: "draft" | "published" | "pending" | "approved" | "rejected";
+  approvalStatus: "draft" | "published" | "pending" | "approved" | "rejected";
   phone: string;
   email?: string;
   price?: number;
@@ -135,7 +135,7 @@ export interface FilterParams {
   featured?: boolean;
   tags?: string[];
   slug?: string;
-  status?: "draft" | "published" | "pending" | "approved" | "rejected";
+  approvalStatus?: "draft" | "published" | "pending" | "approved" | "rejected";
 }
 
 export interface ListingFormData {
@@ -147,7 +147,7 @@ export interface ListingFormData {
   address?: string;
   price?: string;
   featured?: boolean;
-  status?: "draft" | "published" | "pending" | "approved" | "rejected";
+  approvalStatus?: "draft" | "published" | "pending" | "approved" | "rejected";
   category: number;
   city: number;
   tags: number[];

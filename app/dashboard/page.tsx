@@ -19,9 +19,9 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 // Function to get color based on status with fallback
-const getStatusColor = (status: string | undefined): string => {
-  return status && STATUS_COLORS[status] 
-    ? STATUS_COLORS[status] 
+const getStatusColor = (approvalStatus: string | undefined): string => {
+  return approvalStatus && STATUS_COLORS[approvalStatus] 
+    ? STATUS_COLORS[approvalStatus] 
     : STATUS_COLORS.pending;
 };
 
@@ -172,9 +172,9 @@ export default function DashboardPage() {
                   {/* Status badge */}
                   <div className="absolute top-2 right-2">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      getStatusColor(listing.status)
+                      getStatusColor(listing.approvalStatus)
                     }`}>
-                      {formatStatusText(listing.status)}
+                      {formatStatusText(listing.approvalStatus)}
                     </span>
                   </div>
                 </div>
@@ -193,9 +193,9 @@ export default function DashboardPage() {
                   <div className="mt-4 flex justify-between items-center">
                     <div className="text-sm">
                       <span className={`${
-                        getStatusColor(listing.status)
+                        getStatusColor(listing.approvalStatus)
                       } px-2 py-1 rounded-full text-xs`}>
-                        {formatStatusText(listing.status)}
+                        {formatStatusText(listing.approvalStatus)}
                       </span>
                       <span className="text-gray-500 ml-2">
                         {new Date(listing.createdAt).toLocaleDateString()}

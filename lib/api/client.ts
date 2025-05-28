@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://strapi.lust66.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const apiClient = axios.create({
   baseURL: API_URL,

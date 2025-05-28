@@ -27,7 +27,7 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
     address: initialData?.address || '',
     price: initialData?.price?.toString() || '',
     featured: initialData?.featured || false,
-    status: initialData?.status || 'pending',
+    approvalStatus: initialData?.approvalStatus || 'pending',
     category: initialData?.category?.id || 0,
     city: initialData?.city?.id || 0,
     tags: initialData?.tags?.map(tag => tag.id) || [],
@@ -143,10 +143,10 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
         address: formData.address,
         price: formData.price ? parseFloat(formData.price) : undefined,
         featured: formData.featured,
-        status: isEditing && initialData?.status === 'approved' ? 'approved' : 'pending',
+        approvalStatus: isEditing && initialData?.approvalStatus === 'approved' ? 'approved' : 'pending',
         category: formData.category,
         city: formData.city,
-        tags: formData.tags,
+        // tags: formData.tags,
         images: allImageIds,
         linkTargetType: formData.linkTargetType,
         linkTargetValue: formData.linkTargetValue,
@@ -161,7 +161,7 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
       
       if (isEditing && initialData) {
         await updateListing(initialData.id, data);
-        setShowApprovalInfo(listingPayload.status === 'pending');
+        setShowApprovalInfo(listingPayload.approvalStatus === 'pending');
       } else {
         await createListing(data);
         setShowApprovalInfo(true);

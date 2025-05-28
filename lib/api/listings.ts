@@ -4,7 +4,7 @@ import { ApiResponse, FilterParams, Listing, PaginationParams } from '@/types';
 export async function getListings(
   params: PaginationParams & FilterParams = { page: 1, pageSize: 10 }
 ): Promise<ApiResponse<Listing[]>> {
-  const { page, pageSize, category, city, featured, tags, slug, status } = params;
+  const { page, pageSize, category, city, featured, tags, slug, approvalStatus } = params;
   
   // Build filters
   let filters = {};
@@ -30,10 +30,12 @@ export async function getListings(
     filters = { ...filters, featured: { $eq: featured } };
   }
   
-  if (status) {
-    if (status === 'published') {
-      filters = { ...filters, published: { $eq: true } };
-    }
+  // Only show approved listings by default on public pages
+  if (approvalStatus) {
+    filters = { ...filters, approvalStatus: { $eq: approvalStatus } };
+  } else {
+    // If no status is specified, only show approved listings
+    filters = { ...filters, approvalStatus: { $eq: 'approved' } };
   }
   
   if (tags && tags.length > 0) {
@@ -154,28 +156,14 @@ export async function uploadFiles(files: File[]): Promise<any[]> {
 }
 
 export async function createListing(listingData: FormData): Promise<ApiResponse<Listing>> {
-  // Extract the payload and files
   const payload = JSON.parse(listingData.get('data') as string);
-  const files = listingData.getAll('files.images') as File[];
   
-  // First upload the files
-  let fileIds = [];
-  if (files && files.length > 0) {
-    const uploadedFiles = await uploadFiles(files);
-    fileIds = uploadedFiles.map(file => file.id);
-  }
-  
-  // Create the listing with the file IDs
+  // Ensure title is properly passed for slug generation
   const listingPayload = {
     ...payload,
-    images: fileIds,
-    linkTargetType: payload.linkTargetType || 'internal',
-    linkTargetValue: payload.linkTargetValue || '',
-    websiteUrl: payload.websiteUrl || '',
-    bbsThreadUrl: payload.bbsThreadUrl || '',
-    advertiserId: payload.advertiserId
+    slug: payload.title.trim().toLowerCase().replace(/ /g, '-'), // Clean the title for slug generation
   };
-  
+
   const { data } = await apiClient.post('/api/listings', { data: listingPayload });
   return data;
 }
@@ -195,6 +183,7 @@ export async function updateListing(id: number, listingData: FormData): Promise<
   // Update the listing with the file IDs
   const listingPayload = {
     ...payload,
+    title: payload.title.trim(), // Clean the title for slug generation
     images: fileIds,
     linkTargetType: payload.linkTargetType || 'internal',
     linkTargetValue: payload.linkTargetValue || '',

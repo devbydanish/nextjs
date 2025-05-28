@@ -95,7 +95,7 @@ export default async function ListingDetailPage({ params, searchParams }: Listin
       featured,
       createdAt,
       websiteUrl,
-      bbsThreadUrl
+      bbsThreadUrl,
     } = listing;
     
     // Format description text with paragraphs
