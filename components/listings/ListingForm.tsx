@@ -143,7 +143,7 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
         address: formData.address,
         price: formData.price ? parseFloat(formData.price) : undefined,
         featured: formData.featured,
-        approvalStatus: isEditing && initialData?.approvalStatus === 'approved' ? 'approved' : 'pending',
+        approvalStatus: isEditing && initialData?.approvalStatus === 'published' ? 'published' : 'pending',
         category: formData.category,
         city: formData.city,
         images: allImageIds,

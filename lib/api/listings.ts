@@ -30,12 +30,12 @@ export async function getListings(
     filters = { ...filters, featured: { $eq: featured } };
   }
   
-  // Only show approved listings by default on public pages
+  // Handle approval status and publication state
   if (approvalStatus) {
     filters = { ...filters, approvalStatus: { $eq: approvalStatus } };
   } else {
     // If no status is specified, only show approved listings
-    filters = { ...filters, approvalStatus: { $eq: 'approved' } };
+    filters = { ...filters, approvalStatus: { $eq: 'published' } };
   }
   
   if (tags && tags.length > 0) {
@@ -54,10 +54,10 @@ export async function getListings(
     sort: ['createdAt:desc'] // Default sort by creation date
   };
 
-  console.log(queryParams);
-  console.log(filters);
+  console.log('Query Params:', queryParams);
+  console.log('Filters:', filters);
   const { data } = await apiClient.get('/api/listings', { params: { ...queryParams } });
-  console.log(data);
+  console.log('Response:', data);
   return data;
 }
 
@@ -130,8 +130,11 @@ export async function getListingBySlug(slug: string): Promise<ApiResponse<Listin
 export async function getUserListings(userId: number): Promise<ApiResponse<Listing[]>> {
   const { data } = await apiClient.get('/api/listings', {
     params: {
-      filters: { advertiserId: { id: { $eq: userId } } },
-      populate: ['images', 'category', 'city', 'tags']
+      filters: { 
+        advertiserId: { id: { $eq: userId } }
+      },
+      populate: ['images', 'category', 'city', 'tags'],
+      publicationState: 'preview' // This allows seeing both draft and published content
     }
   });
   return data;
