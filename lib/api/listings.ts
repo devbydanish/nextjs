@@ -161,10 +161,20 @@ export async function uploadFiles(files: File[]): Promise<any[]> {
 export async function createListing(listingData: FormData): Promise<ApiResponse<Listing>> {
   const payload = JSON.parse(listingData.get('data') as string);
   
-  // Ensure title is properly passed for slug generation
+  // Ensure title is valid for slug generation
+  const title = payload.title.trim();
+  
+  // Create a clean slug from the title
+  // Must start with alphanumeric and only contain allowed characters
+  const slug = title.toLowerCase()
+    .replace(/[^a-z0-9-_.~]/g, '-') // Replace invalid chars with hyphens
+    .replace(/^[^a-z0-9]+/, '') // Remove non-alphanumeric chars from start
+    .replace(/--+/g, '-') // Replace multiple hyphens with single hyphen
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+  
   const listingPayload = {
     ...payload,
-    slug: payload.title.trim().toLowerCase().replace(/ /g, '-'), // Clean the title for slug generation
+    slug: slug
   };
 
   const { data } = await apiClient.post('/api/listings', { data: listingPayload });
@@ -183,10 +193,18 @@ export async function updateListing(id: number, listingData: FormData): Promise<
     fileIds = uploadedFiles.map(file => file.id);
   }
   
-  // Update the listing with the file IDs
+  // Create a clean slug from the title
+  const title = payload.title.trim();
+  const slug = title.toLowerCase()
+    .replace(/[^a-z0-9-_.~]/g, '-') // Replace invalid chars with hyphens
+    .replace(/^[^a-z0-9]+/, '') // Remove non-alphanumeric chars from start
+    .replace(/--+/g, '-') // Replace multiple hyphens with single hyphen
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+  
+  // Update the listing with the file IDs and slug
   const listingPayload = {
     ...payload,
-    title: payload.title.trim(), // Clean the title for slug generation
+    slug: slug,
     images: fileIds,
     linkTargetType: payload.linkTargetType || 'internal',
     linkTargetValue: payload.linkTargetValue || '',

@@ -43,11 +43,29 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
   const [cities, setCities] = useState<City[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [titleError, setTitleError] = useState<string | null>(null);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<any[]>(
     initialData?.images || []
   );
   const [showApprovalInfo, setShowApprovalInfo] = useState(false);
+  
+  // Title validation regex - only allow alphanumeric, hyphens, underscores, periods, and tildes
+  const titleValidationRegex = /^[a-zA-Z0-9][a-zA-Z0-9-_.~]*$/;
+
+  // Validate title
+  const validateTitle = (title: string): boolean => {
+    if (!title) {
+      setTitleError('Title is required.');
+      return false;
+    }
+    if (!titleValidationRegex.test(title)) {
+      setTitleError('Title must start with a letter or number and can only contain letters, numbers, hyphens, underscores, periods, and tildes.');
+      return false;
+    }
+    setTitleError(null);
+    return true;
+  };
   
   useEffect(() => {
     // Fetch categories and cities
@@ -79,6 +97,11 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
+      
+      // Validate title field when it changes
+      if (name === 'title') {
+        validateTitle(value);
+      }
     }
   };
   
@@ -115,6 +138,12 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate title before submission
+    if (!validateTitle(formData.title)) {
+      return; // Stop form submission if title is invalid
+    }
+    
     setIsLoading(true);
     setError(null);
     
@@ -246,8 +275,16 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
           value={formData.title}
           onChange={handleChange}
           required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+          pattern="[a-zA-Z0-9][a-zA-Z0-9-_.~]*"
+          title="Must start with a letter or number and can only contain letters, numbers, hyphens, underscores, periods, and tildes"
+          className={`mt-1 block w-full px-3 py-2 border ${titleError ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500`}
         />
+        {titleError && (
+          <p className="mt-1 text-sm text-red-600">{titleError}</p>
+        )}
+        <p className="mt-1 text-xs text-gray-500">
+          Must start with a letter or number. Only letters, numbers, hyphens, underscores, periods, and tildes are allowed.
+        </p>
       </div>
       
       {/* Subtitle */}
