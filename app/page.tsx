@@ -80,11 +80,9 @@ const LatestListingsSection = ({ listings }: { listings: Listing[] }) => {
                 </div>
                 
                 <div className="p-4">
-                  <Link href={`/${listing.city.slug}/${listing.category.slug}/${listing.slug}`}>
-                    <h3 className="text-sm font-semibold text-gray-900 truncate hover:text-purple-600 transition-colors">
-                      {listing.title}
-                    </h3>
-                  </Link>
+                  <h3 className="text-sm font-semibold text-gray-900 truncate hover:text-purple-600 transition-colors">
+                    {listing.title}
+                  </h3>
                   
                   <div className="mt-1 flex items-center text-xs text-gray-500">
                     <span className="truncate">{listing.category.name}</span>
@@ -170,11 +168,9 @@ const CategorySection = ({ category, listings }: { category: Category; listings:
               </div>
               
               <div className="p-3">
-                <Link href={`/${listing.city.slug}/${listing.category.slug}/${listing.slug}`}>
-                  <h3 className="text-xs font-semibold text-gray-900 truncate hover:text-purple-600 transition-colors">
-                    {listing.title}
-                  </h3>
-                </Link>
+                <h3 className="text-xs font-semibold text-gray-900 truncate hover:text-purple-600 transition-colors">
+                  {listing.title}
+                </h3>
                 
                 <div className="mt-1 text-xs text-gray-500">
                   <span>{listing.city.name}</span>
@@ -209,34 +205,43 @@ const CategorySection = ({ category, listings }: { category: Category; listings:
 
 export default async function HomePage() {
   try {
-    // Fetch data in parallel
+    // First fetch cities and categories to get the first city
     const [
-      latestListingsResponse, 
       categoriesResponse, 
       citiesResponse, 
       promotionsResponse
     ] = await Promise.all([
-      // Get latest listings site-wide (will be sorted by position/date in component)
-      getListings({ page: 1, pageSize: 10, approvalStatus: "published" }).catch(() => ({ data: [], meta: {} })),
       getCategories(),
       getCities(),
       getPromotions('home')
     ]);
 
-    const latestListings = latestListingsResponse.data || [];
     const categories = categoriesResponse.data || [];
     const cities = citiesResponse.data || [];
     const promotions = promotionsResponse.data || [];
 
-    // Fetch listings by category (excluding test category, get only published listings)
+    // Get the first city for filtering latest listings
+    const firstCity = cities.length > 0 ? cities[-1] : null;
+
+    // Now fetch latest listings filtered by first city
+    const latestListingsResponse = await getListings({ 
+      page: 1, 
+      pageSize: 10, 
+      city: firstCity?.slug, // Filter by first city
+      approvalStatus: "published" 
+    }).catch(() => ({ data: [], meta: {} }));
+
+    const latestListings = latestListingsResponse.data || [];
+
+    // Fetch all listings for each category separately (no overflow logic)
     const categoryListings = await Promise.all(
       categories
-        .filter(category => category.slug !== 'test') // Exclude test category
+        .filter(category => ['test', 'test2'].includes(category.slug)) // Include both test categories for proper testing
         .map(async (category) => {
           try {
             const response = await getListings({ 
               page: 1, 
-              pageSize: 12, // Get more to have enough for multiple rows
+              pageSize: 50, // Get more listings to show all in category
               category: category.slug,
               approvalStatus: "published"
             });
@@ -247,6 +252,9 @@ export default async function HomePage() {
           }
         })
     );
+
+    // Filter out categories with no listings
+    const filteredCategoryListings = categoryListings.filter(({ listings }) => listings.length > 0);
 
     return (
       <div className="flex flex-col">
@@ -262,7 +270,7 @@ export default async function HomePage() {
 
         {/* Category Sections */}
         <div className="w-full bg-gray-50">
-          {categoryListings.map(({ category, listings }) => (
+          {filteredCategoryListings.map(({ category, listings }) => (
             <CategorySection key={category.id} category={category} listings={listings} />
           ))}
         </div>
