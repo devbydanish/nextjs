@@ -56,7 +56,7 @@ const LatestListingsSection = ({ listings }: { listings: Listing[] }) => {
         {sortedListings.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {sortedListings.slice(0, 10).map((listing) => (
-              <div key={listing.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+              <Link href={`/${listing.city.slug}/${listing.category.slug}/${listing.slug}`} key={listing.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="relative h-48 bg-gray-200">
                   {listing.images && listing.images.length > 0 ? (
                     <Image
@@ -100,7 +100,7 @@ const LatestListingsSection = ({ listings }: { listings: Listing[] }) => {
                     </div>
                   )}
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         ) : (
@@ -146,7 +146,7 @@ const CategorySection = ({ category, listings }: { category: Category; listings:
         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {sortedListings.map((listing) => (
-            <div key={listing.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+            <Link href={`/${listing.city.slug}/${listing.category.slug}/${listing.slug}`} key={listing.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
               <div className="relative h-32 bg-gray-200">
                 {listing.images && listing.images.length > 0 ? (
                   <Image
@@ -188,7 +188,7 @@ const CategorySection = ({ category, listings }: { category: Category; listings:
                   </div>
                 )}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
         
