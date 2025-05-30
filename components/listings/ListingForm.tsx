@@ -188,7 +188,7 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
       data.append('data', JSON.stringify(listingPayload));
       
       if (isEditing && initialData) {
-        await updateListing(initialData.id, data);
+        await updateListing(initialData.documentId, data);
         setShowApprovalInfo(listingPayload.approvalStatus === 'pending');
       } else {
         await createListing(data);

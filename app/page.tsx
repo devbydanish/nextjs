@@ -6,6 +6,7 @@ import { getCategories } from '@/lib/api/categories';
 import { getCities } from '@/lib/api/cities';
 import { getPromotions } from '@/lib/api/promotions';
 import ListingGrid from '@/components/listings/ListingGrid';
+import ListingSlider from '@/components/listings/ListingSlider';
 import PromotionSlider from '@/components/promotions/PromotionSlider';
 import { Listing, Category } from '@/types';
 
@@ -25,91 +26,6 @@ const buildQueryString = (params: Record<string, string | undefined>) => {
   
   const queryString = urlParams.toString();
   return queryString ? `?${queryString}` : '';
-};
-
-// Component for Latest Listings section
-const LatestListingsSection = ({ listings }: { listings: Listing[] }) => {
-  console.log(listings);
-  // Sort listings: if homepagePosition is available, use it, otherwise use date (newest first)
-  const sortedListings = [...listings].sort((a, b) => {
-    // If both have homepage positions, sort by position
-    if (a.homepagePosition && b.homepagePosition) {
-      return a.homepagePosition - b.homepagePosition;
-    }
-    // If only one has position, prioritize it
-    if (a.homepagePosition && !b.homepagePosition) return -1;
-    if (!a.homepagePosition && b.homepagePosition) return 1;
-    // Otherwise sort by date (newest first)
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
-
-  return (
-    <div className="w-full py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Latest Listings</h2>
-          <Link href="/listings" className="text-purple-600 hover:text-purple-500 font-medium">
-            View All
-          </Link>
-        </div>
-        
-        {sortedListings.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {sortedListings.slice(0, 10).map((listing) => (
-              <Link href={`/${listing.city.slug}/${listing.category.slug}/${listing.slug}`} key={listing.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="relative h-48 bg-gray-200">
-                  {listing.images && listing.images.length > 0 ? (
-                    <Image
-                      src={`${process.env.NEXT_PUBLIC_API_URL}${listing.images[0].url}`}
-                      alt={listing.title}
-                      className="object-cover"
-                      fill
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-gray-400">No image</span>
-                    </div>
-                  )}
-                  {listing.featured && (
-                    <div className="absolute top-2 right-2">
-                      <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
-                        Featured
-                      </span>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="p-4">
-                  <h3 className="text-sm font-semibold text-gray-900 truncate hover:text-purple-600 transition-colors">
-                    {listing.title}
-                  </h3>
-                  
-                  <div className="mt-1 flex items-center text-xs text-gray-500">
-                    <span className="truncate">{listing.category.name}</span>
-                    <span className="mx-1">•</span>
-                    <span>{listing.city.name}</span>
-                  </div>
-                  
-                  <p className="mt-2 text-xs text-gray-600 line-clamp-2">{listing.description}</p>
-                  
-                  {listing.price && (
-                    <div className="mt-2 text-sm font-bold text-purple-600">
-                      ${listing.price.toFixed(2)}
-                    </div>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium text-gray-700">No listings yet</h3>
-            <p className="text-gray-500 mt-2">Check back later for new listings.</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
 };
 
 // Component for Category section
@@ -142,7 +58,7 @@ const CategorySection = ({ category, listings }: { category: Category; listings:
           </Link>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {sortedListings.map((listing) => (
             <Link href={`/${listing.city.slug}/${listing.category.slug}/${listing.slug}`} key={listing.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
               <div className="relative h-32 bg-gray-200">
@@ -172,15 +88,9 @@ const CategorySection = ({ category, listings }: { category: Category; listings:
                   {listing.title}
                 </h3>
                 
-                <div className="mt-1 text-xs text-gray-500">
-                  <span>{listing.city.name}</span>
-                </div>
-                
-                <p className="mt-1 text-xs text-gray-600 line-clamp-2">{listing.description}</p>
-                
-                {listing.price && (
-                  <div className="mt-1 text-xs font-bold text-purple-600">
-                    ${listing.price.toFixed(2)}
+                {listing.phone && (
+                  <div className="mt-2 text-xs text-gray-700">
+                    {listing.phone}
                   </div>
                 )}
               </div>
@@ -220,8 +130,8 @@ export default async function HomePage() {
     const cities = citiesResponse.data || [];
     const promotions = promotionsResponse.data || [];
 
-    // Get the first city for filtering latest listings
-    const firstCity = cities.length > 0 ? cities[-1] : null;
+    // Get the last city for filtering latest listings (fixed array access)
+    const firstCity = cities.length > 0 ? cities[cities.length - 1] : null;
 
     // Now fetch latest listings filtered by first city
     const latestListingsResponse = await getListings({ 
@@ -265,8 +175,13 @@ export default async function HomePage() {
           )}
         </div>
 
-        {/* Latest Listings Section */}
-        <LatestListingsSection listings={latestListings} />
+        {/* Latest Listings Section - Restored Horizontal Slider */}
+        <ListingSlider 
+          listings={latestListings} 
+          title={`Latest Listings ${firstCity ? `in ${firstCity.name}` : ''}`}
+          viewAllLink="/listings" 
+          compact={true}
+        />
 
         {/* Category Sections */}
         <div className="w-full bg-gray-50">

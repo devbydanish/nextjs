@@ -181,7 +181,7 @@ export async function createListing(listingData: FormData): Promise<ApiResponse<
   return data;
 }
 
-export async function updateListing(id: number, listingData: FormData): Promise<ApiResponse<Listing>> {
+export async function updateListing(id: string, listingData: FormData): Promise<ApiResponse<Listing>> {
   // Extract the payload and files
   const payload = JSON.parse(listingData.get('data') as string);
   const files = listingData.getAll('files.images') as File[];
@@ -212,6 +212,8 @@ export async function updateListing(id: number, listingData: FormData): Promise<
     bbsThreadUrl: payload.bbsThreadUrl || '',
     advertiserId: payload.advertiserId
   };
+
+  console.log(id)
   
   const { data } = await apiClient.put(`/api/listings/${id}`, { data: listingPayload });
   return data;
@@ -224,7 +226,8 @@ export async function deleteListing(id: number): Promise<void> {
 export async function getListingById(id: string | number): Promise<ApiResponse<Listing>> {
   const { data } = await apiClient.get(`/api/listings/${id}`, {
     params: {
-      populate: ['images', 'category', 'city', 'tags']
+      populate: ['images', 'category', 'city', 'tags'],
+      publicationState: 'preview' // This allows seeing both draft and published content
     }
   });
   return data;

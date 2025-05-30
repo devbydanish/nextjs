@@ -1,5 +1,6 @@
 export interface Listing {
   id: number;   
+  documentId: string;
   title: string;
   subtitle?: string;
   description: string;

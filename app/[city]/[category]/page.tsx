@@ -2,8 +2,10 @@ import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getListings } from '@/lib/api/listings';
-import { getCityBySlug, getCities } from '@/lib/api/cities';
+import { getCategories } from '@/lib/api/categories';
+import { getCities } from '@/lib/api/cities';
 import { getCategoryBySlug } from '@/lib/api/categories';
+import { getCityBySlug } from '@/lib/api/cities';
 import ListingGrid from '@/components/listings/ListingGrid';
 import { Metadata } from 'next';
 
@@ -26,7 +28,8 @@ type Props = {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { city: citySlug, category: categorySlug } = await params;
+  const resolvedParams = React.use(params);
+  const { city: citySlug, category: categorySlug } = resolvedParams;
   
   try {
     const isAllCities = citySlug === 'all';
@@ -78,8 +81,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {
-  const { city: citySlug, category: categorySlug } = await params;
-  const { page: pageSlug, sort: sortSlug} = await searchParams;
+  const resolvedParams = React.use(params);
+  const resolvedSearchParams = React.use(searchParams);
+  const { city: citySlug, category: categorySlug } = resolvedParams;
+  const { page: pageSlug, sort: sortSlug } = resolvedSearchParams;
   
   const page = parseInt(pageSlug || '1', 10);
   const sort = sortSlug || 'createdAt:desc';

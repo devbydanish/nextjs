@@ -60,6 +60,7 @@ export default function DashboardPage() {
         try {
           const response = await getUserListings(user.id);
           setListings(response.data);
+          console.log(response.data);
           setError(null);
         } catch (err) {
           setError('Failed to load your listings. Please try again.');
@@ -153,7 +154,7 @@ export default function DashboardPage() {
           
           {/* Listings with status */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {listings.map((listing) => (
+            {listings.map((listing: Listing) => (
               <div key={listing.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="relative h-48 bg-gray-200">
                   {listing.images && listing.images.length > 0 ? (
@@ -204,7 +205,7 @@ export default function DashboardPage() {
                     
                     <div className="flex space-x-2">
                       <Link
-                        href={`/dashboard/edit/${listing.id}`}
+                        href={`/dashboard/edit/${listing.documentId}`}
                         className="text-purple-600 hover:text-purple-500"
                       >
                         Edit
