@@ -153,6 +153,7 @@ export default async function HomePage() {
               page: 1, 
               pageSize: 50, // Get more listings to show all in category
               category: category.slug,
+              city: firstCity?.slug,
               approvalStatus: "published"
             });
             return { category, listings: response.data || [] };
