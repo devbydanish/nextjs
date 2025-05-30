@@ -70,8 +70,7 @@ interface CityPageProps {
 }
 
 export default async function CityPage({ params }: CityPageProps) {
-  const resolvedParams = React.use(params);
-  const { city: citySlug } = resolvedParams;
+  const { city: citySlug } = await params;
   
   // First, verify the city exists
   try {
@@ -207,7 +206,7 @@ export default async function CityPage({ params }: CityPageProps) {
       </div>
     );
   } catch (error) {
-    console.error('Error fetching city page data:', error);
+    console.error('Error fetching city data:', error);
     notFound();
   }
 } 

@@ -47,9 +47,7 @@ export async function generateMetadata({ params }: ListingDetailPageProps): Prom
 }
 
 export default async function ListingDetailPage({ params, searchParams }: ListingDetailPageProps) {
-  const resolvedParams = React.use(params);
-  const resolvedSearchParams = React.use(searchParams);
-  const { slug } = resolvedParams;
+  const [{ slug }, resolvedSearchParams] = await Promise.all([params, searchParams]);
   
   try {
     const response = await getListingBySlug(slug);

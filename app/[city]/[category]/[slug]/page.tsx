@@ -24,8 +24,7 @@ interface ListingDetailPageProps {
 }
 
 export async function generateMetadata({ params }: ListingDetailPageProps): Promise<Metadata> {
-  const resolvedParams = React.use(params);
-  const { slug } = resolvedParams;
+  const { slug } = await params;
   
   try {
     const response = await getListingBySlug(slug);
@@ -58,9 +57,7 @@ export async function generateMetadata({ params }: ListingDetailPageProps): Prom
 }
 
 export default async function ListingDetailPage({ params, searchParams }: ListingDetailPageProps) {
-  const resolvedParams = React.use(params);
-  const resolvedSearchParams = React.use(searchParams);
-  const { city: citySlug, category: categorySlug, slug } = resolvedParams;
+  const [{ city: citySlug, category: categorySlug, slug }, resolvedSearchParams] = await Promise.all([params, searchParams]);
   
   try {
     // Verify the URL parameters match the listing data
