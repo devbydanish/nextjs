@@ -211,7 +211,7 @@ export default function DashboardPage() {
                         Edit
                       </Link>
                       <Link
-                        href={`/listings/${listing.slug}`}
+                        href={`/${listing.city.slug}/${listing.category.slug}/${listing.slug}`}
                         className="text-gray-600 hover:text-gray-500"
                       >
                         View

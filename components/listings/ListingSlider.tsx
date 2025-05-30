@@ -9,17 +9,23 @@ interface ListingSliderProps {
   title: string;
   viewAllLink?: string;
   compact?: boolean;
+  autoScroll?: boolean;
+  scrollInterval?: number;
 }
 
 export default function ListingSlider({
   listings,
   title,
   viewAllLink,
-  compact = true
+  compact = true,
+  autoScroll = true,
+  scrollInterval = 5000
 }: ListingSliderProps) {
   const sliderRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const checkScroll = () => {
     if (!sliderRef.current) return;
@@ -27,12 +33,6 @@ export default function ListingSlider({
     setCanScrollLeft(scrollLeft > 0);
     setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 10);
   };
-
-  useEffect(() => {
-    checkScroll();
-    window.addEventListener('resize', checkScroll);
-    return () => window.removeEventListener('resize', checkScroll);
-  }, [listings]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (!sliderRef.current) return;
@@ -45,6 +45,43 @@ export default function ListingSlider({
     // Update buttons after scroll animation completes
     setTimeout(checkScroll, 300);
   };
+
+  // Auto-scroll functionality
+  useEffect(() => {
+    if (autoScroll && !isHovered && listings.length > 0) {
+      intervalRef.current = setInterval(() => {
+        if (sliderRef.current) {
+          const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
+          
+          // If we're at the end, instantly jump to start without animation
+          if (scrollLeft + clientWidth >= scrollWidth - 10) {
+            sliderRef.current.scrollTo({ left: 0 });
+            // Then immediately trigger the next scroll
+            setTimeout(() => scroll('right'), 5);
+          } else {
+            scroll('right');
+          }
+        }
+      }, scrollInterval);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [autoScroll, isHovered, listings.length, scrollInterval]);
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    return () => window.removeEventListener('resize', checkScroll);
+  }, [listings]);
 
   if (!listings || listings.length === 0) {
     return null;
@@ -62,7 +99,10 @@ export default function ListingSlider({
           )}
         </div>
         
-        <div className="relative">
+        <div className="relative"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
           {/* Scroll buttons */}
           {canScrollLeft && (
             <button 
@@ -91,11 +131,26 @@ export default function ListingSlider({
           {/* Slider content */}
           <div 
             ref={sliderRef}
-            className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar"
+            className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar scroll-smooth"
             onScroll={checkScroll}
           >
+            {/* Show the last few items at the start for smooth infinite scroll */}
+            {listings.slice(-3).map(listing => (
+              <div key={`${listing.id}-clone-start`} className="flex-none w-48 sm:w-56">
+                <ListingCard listing={listing} compact={compact} />
+              </div>
+            ))}
+            
+            {/* Original listings */}
             {listings.map(listing => (
               <div key={listing.id} className="flex-none w-48 sm:w-56">
+                <ListingCard listing={listing} compact={compact} />
+              </div>
+            ))}
+            
+            {/* Show the first few items at the end for smooth infinite scroll */}
+            {listings.slice(0, 3).map(listing => (
+              <div key={`${listing.id}-clone-end`} className="flex-none w-48 sm:w-56">
                 <ListingCard listing={listing} compact={compact} />
               </div>
             ))}

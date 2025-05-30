@@ -6,9 +6,10 @@ import { Listing } from '@/types';
 interface ListingCardProps {
   listing: Listing;
   compact?: boolean;
+  isDashboard?: boolean;
 }
 
-export default function ListingCard({ listing, compact = false }: ListingCardProps) {
+export default function ListingCard({ listing, compact = false, isDashboard = false }: ListingCardProps) {
   const { title, slug, phone, featured, images, category, city } = listing;
   
   // Get first image or use placeholder
@@ -23,8 +24,10 @@ export default function ListingCard({ listing, compact = false }: ListingCardPro
   const categorySlug = category?.slug;
   const citySlug = city?.slug;
   
-  // Build the new URL structure: /city/category/slug
-  const listingUrl = `/${citySlug}/${categorySlug}/${slug}`;
+  // Build the URL based on context
+  const listingUrl = isDashboard 
+    ? `/dashboard/listings/${slug}`
+    : `/${citySlug}/${categorySlug}/${slug}`;
   
   if (compact) {
     return (
